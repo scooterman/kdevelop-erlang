@@ -28,6 +28,7 @@ public:
     virtual void visitAttrVal(AttrValAst *) {}
     virtual void visitAttribute(AttributeAst *) {}
     virtual void visitAttributeDeclaration(AttributeDeclarationAst *) {}
+    virtual void visitBehaviourDeclaration(BehaviourDeclarationAst *) {}
     virtual void visitBinBaseType(BinBaseTypeAst *) {}
     virtual void visitBinElement(BinElementAst *) {}
     virtual void visitBinElements(BinElementsAst *) {}

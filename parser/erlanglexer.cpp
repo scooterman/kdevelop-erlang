@@ -1,6 +1,7 @@
 /***************************************************************************
  *   This file is part of KDevelop                                         *
- *   Copyright 2008 Niko Sams <niko.sams@gmail.com>                        *
+ *   Copyright 2010 Victor Vicente de Carvalho                             *
+ *   		      <victor.v.carvalho@gmail.com>                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
@@ -125,9 +126,9 @@ int Lexer::nextTokenKind()
         {
             if (it->unicode() == '.' && hasPoint)
             {
-	      m_haltCompiler = true;
+                m_haltCompiler = true;
             }
-            
+
             if (it->unicode() == '.' && (it + 1)->isDigit())
             {
                 hasPoint = true;
@@ -202,7 +203,7 @@ int Lexer::nextTokenKind()
     }
     else if (it->unicode() == '#')
     {
-	token = Parser::Token_POUND_SIGN;
+        token = Parser::Token_POUND_SIGN;
     }
     else if (it->unicode() == '!')
     {
@@ -479,7 +480,9 @@ int Lexer::nextTokenKind()
             token = Parser::Token_RECORD_DIRECTIVE;
         } else if (name == "include") {
             token = Parser::Token_INCLUDE_DIRECTIVE;
-        }
+        } else if (name == "behaviour"){
+	  token = Parser::Token_BEHAVIOUR_DIRECTIVE;
+	}
         else
         {
             token = Parser::Token_ATOM_LITERAL;

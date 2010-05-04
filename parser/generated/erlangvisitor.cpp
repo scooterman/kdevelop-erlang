@@ -15,6 +15,7 @@ Visitor::ParserFuncType Visitor::sParserTable[] =
     reinterpret_cast<ParserFuncType>(&Visitor::visitAttrVal),
     reinterpret_cast<ParserFuncType>(&Visitor::visitAttribute),
     reinterpret_cast<ParserFuncType>(&Visitor::visitAttributeDeclaration),
+    reinterpret_cast<ParserFuncType>(&Visitor::visitBehaviourDeclaration),
     reinterpret_cast<ParserFuncType>(&Visitor::visitBinBaseType),
     reinterpret_cast<ParserFuncType>(&Visitor::visitBinElement),
     reinterpret_cast<ParserFuncType>(&Visitor::visitBinElements),

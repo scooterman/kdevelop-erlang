@@ -105,3 +105,6 @@ target_link_libraries(duchaintest
 #     ${KDEVPLATFORM_TESTS_LIBRARIES}
 #     ${QT_QTTEST_LIBRARY}
 # )
+
+
+add_subdirectory(debug)

@@ -37,10 +37,15 @@ void DefaultVisitor::visitAttribute(AttributeAst *node)
     visitNode(node->import_declaration);
     visitNode(node->record_declaration);
     visitNode(node->file_declaration);
+    visitNode(node->behaviour_declaration);
     visitNode(node->attribute_declaration);
 }
 
 void DefaultVisitor::visitAttributeDeclaration(AttributeDeclarationAst *)
+{
+}
+
+void DefaultVisitor::visitBehaviourDeclaration(BehaviourDeclarationAst *)
 {
 }
 

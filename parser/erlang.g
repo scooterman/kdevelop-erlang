@@ -166,7 +166,8 @@ namespace KDevelop
        IFNDEF_DIRECTIVE("ifndef macro directive"),
        ELSE_DIRECTIVE("else macro directive"),
        ENDIF_DIRECTIVE("endif macro directive"), INCLUDE_LIB("include"), 
-       EXPORT_DIRECTIVE("exported functions"), 
+       EXPORT_DIRECTIVE("exported functions"),
+       BEHAVIOUR_DIRECTIVE("module behaviour"),
        FLOAT_LITERAL("float literal");;
 
 -- token that makes the parser fail in any case:
@@ -185,11 +186,15 @@ namespace KDevelop
             | import_declaration=importDeclaration
             | record_declaration=recordDeclaration
             | file_declaration=fileDeclaration
+            | behaviour_declaration=behaviourDeclaration
             | attribute_declaration=attributeDeclaration )
 -> attribute;;
 
     MODULE_DIRECTIVE LPAREN module_name=ATOM_LITERAL RPAREN
 -> moduleDeclaration;;
+
+    BEHAVIOUR_DIRECTIVE LPAREN behaviour=ATOM_LITERAL RPAREN
+-> behaviourDeclaration;;
 
     EXPORT_DIRECTIVE LPAREN LBRACKET #exported_functions=functionSlashArity @ COMMA RBRACKET RPAREN DOT
 -> exportDeclaration;;

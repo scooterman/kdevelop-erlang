@@ -20,6 +20,7 @@ public:
     virtual void visitAttrVal(AttrValAst *node);
     virtual void visitAttribute(AttributeAst *node);
     virtual void visitAttributeDeclaration(AttributeDeclarationAst *node);
+    virtual void visitBehaviourDeclaration(BehaviourDeclarationAst *node);
     virtual void visitBinBaseType(BinBaseTypeAst *node);
     virtual void visitBinElement(BinElementAst *node);
     virtual void visitBinElements(BinElementsAst *node);
