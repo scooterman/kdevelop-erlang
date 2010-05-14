@@ -29,9 +29,9 @@
 
 #include <QtCore/QString>
 #include <kdebug.h>
-#include <tokenstream.h>
+#include "parser/tokenstream.h"
 #include <language/interfaces/iproblem.h>
-#include "erlanglexer.h"
+#include "parser/erlanglexer.h"
 
 namespace KDevelop
 {
@@ -44,7 +44,7 @@ namespace KDevelop
 -- Export macro to use the parser in a shared lib
 ------------------------------------------------------------
 %export_macro "KDEVERLANGPARSER_EXPORT"
-%export_macro_header "parserexport.h"
+%export_macro_header "parser/parserexport.h"
 
 ------------------------------------------------------------
 -- Ast Node class members

@@ -23,7 +23,7 @@
 #include <language/editor/simplerange.h>
 #include "parsesession.h"
 
-#include <parser/generated/erlangast.h>
+#include <erlangast.h>
 #include "parserexport.h"
 #include "kdev-pg-token-stream.h"
 

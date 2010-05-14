@@ -23,7 +23,7 @@
 
 #include "contextbuilder.h"
 #include <language/duchain/builders/abstractdeclarationbuilder.h>
-#include <parser/generated/erlangast.h>
+#include <erlangast.h>
 #include <language/duchain/builders/abstractdeclarationbuilder.h>
 
 namespace KDvelop

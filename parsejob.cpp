@@ -38,7 +38,7 @@
 #include <interfaces/icore.h>
 #include <interfaces/ilanguagecontroller.h>
 
-#include "parsesession.h"
+#include "parser/parsesession.h"
 #include "erlanglanguagesupport.h"
 #include "duchain/builders/declarationbuilder.h"
 #include "parser/editorintegrator.h"
