@@ -19,7 +19,7 @@
 */
 
 #include "debuggertests.h"
-#include "../erlangdebugger.h"
+#include "../debugger.h"
 #include "../debugsession.h"
 
 #include <QApplication>

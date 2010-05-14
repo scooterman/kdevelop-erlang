@@ -21,8 +21,8 @@
 #ifndef DEBUGSESSION_H
 #define DEBUGSESSION_H
 
-#include <kdevplatform/debugger/interfaces/idebugsession.h>
-#include <kdevplatform/debugger/interfaces/iframestackmodel.h>
+#include <debugger/interfaces/idebugsession.h>
+#include <debugger/interfaces/iframestackmodel.h>
 
 #include <interfaces/ilaunchconfiguration.h>
 
