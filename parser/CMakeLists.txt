@@ -6,10 +6,11 @@ set(parser_STAT_SRCS
     parsesession.cpp
     )
 
-kdevpgqt_generate(_kdevpgList erlang NAMESPACE erlang DEBUG_VISITOR TOKEN_TEXT
+kdevpgqt_generate(_kdevpgList erlang NAMESPACE erlang TOKEN_TEXT
     "${erlang_SOURCE_DIR}/parser/erlang.g"
     "${erlang_SOURCE_DIR}/parser/erlanglexer.h"
 )
+
 set( parser_SRCS
     ${_kdevpgList}
 )

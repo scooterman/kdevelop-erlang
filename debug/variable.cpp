@@ -59,17 +59,15 @@ public:
     : m_variable(variable), m_callback(callback), m_callbackMethod(callbackMethod)
     {}
 
-    virtual void execute(ErlangOutput &ouput)
+    virtual void execute(ErlangOutput &output)
     {
-	ErlangVariableListOutput* v_output = static_cast<ErlangVariableListOutput*>(&ouput);
-        //kDebug() << ouput.toString();    
-	
-        m_variable->handleProperty(*v_output);  
-
-        if (m_callback && m_callbackMethod) {
-            QMetaObject::invokeMethod(m_callback, m_callbackMethod, Q_ARG(bool, true));
-        }
+	VariableListOutput* v_output = static_cast<VariableListOutput*>(&output);
+	if (m_variable->handleProperty(*v_output))	
+	{
+	  QMetaObject::invokeMethod(m_callback, m_callbackMethod, Q_ARG(bool, true));
+	}
     }
+    
 private:
     QPointer<Variable> m_variable;
     QObject *m_callback;
@@ -78,24 +76,37 @@ private:
 
 void Variable::attachMaybe(QObject *callback, const char *callbackMethod)
 {
-    if (hasStartedSession()) {
-        // FIXME: Eventually, should be a property of variable.
+    if (hasStartedSession())
+    {
         KDevelop::IDebugSession* is = KDevelop::ICore::self()->debugController()->currentSession();
         DebugSession* s = static_cast<DebugSession*>(is);
-//         QStringList args;
-//         args << "-n " + expression();
-//         args << QString("-d %0").arg(s->frameStackModel()->currentFrame());
-	s->requestVariables(new VariableListCallback(this, 0, 0));
+	s->requestVariables(new VariableListCallback(this, callback, callbackMethod));
     }
+    
 }
 
 void Variable::fetchMoreChildren()
 {
 }
 
-void Variable::handleProperty(const ErlangVariableListOutput &xml)
+bool Variable::handleProperty(VariableListOutput &variableList)
 {
-    setInScope(true);   
+    setInScope(true); 
+    
+    QDomDocument& document = variableList.getDocument();
+    QDomNodeList lst = document.elementsByTagName("variable");
+       
+    for (int i = 0; i < lst.size(); ++i)
+    {
+      QDomNode nd = lst.at(i);
+      if (nd.attributes().namedItem("name").nodeValue() == expression())
+      {
+	setValue(nd.firstChild().nodeValue());
+	return true;
+      }
+    }	  
+    
+    return false;
 }
 
 QString Variable::fullName() const

@@ -38,15 +38,15 @@ ErlangBreakpointController::ErlangBreakpointController(DebugSession* parent): IB
     connect(parent, SIGNAL(stateChanged(KDevelop::IDebugSession::DebuggerState)),
                 SLOT(stateChanged(KDevelop::IDebugSession::DebuggerState)));
 		
-    connect(parent, SIGNAL(breakpointUpdate(ErlangBreakpointOutput*)),
-                SLOT(hitBreakpoint(ErlangBreakpointOutput*)));
+    connect(parent, SIGNAL(breakpointUpdate(BreakpointOutput*)),
+                SLOT(hitBreakpoint(BreakpointOutput*)));
 }
 
 void ErlangBreakpointController::sendMaybe(KDevelop::Breakpoint* breakpoint)
 {
   if (breakpoint->kind() == KDevelop::Breakpoint::CodeBreakpoint && !m_ids.contains(breakpoint))
   {
-    debugSession()->sendBreakpoint(breakpoint->url().fileName().split(".")[0], breakpoint->line());        
+    debugSession()->sendBreakpoint(breakpoint->url().fileName().split(".")[0], breakpoint->line() + 1);        
     m_ids[breakpoint] = breakpoint->url().path() + ":" +  QString::number(breakpoint->line());
   }
 }
@@ -60,7 +60,7 @@ void ErlangBreakpointController::stateChanged(KDevelop::IDebugSession::DebuggerS
     }
 }
 
-void ErlangBreakpointController::hitBreakpoint(ErlangBreakpointOutput* breakpoint)
+void ErlangBreakpointController::hitBreakpoint(BreakpointOutput* breakpoint)
 {
   QString id = breakpoint->getModule() + ":" +  QString::number(breakpoint->getLine());
   

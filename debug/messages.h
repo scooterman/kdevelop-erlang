@@ -23,6 +23,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <QDomDocument>
 
 namespace ErlangDebugPlugin
 {
@@ -44,8 +45,20 @@ enum OutputCommandType
 {
   VariableListOutputType,
   BreakpointOutputType,
-  MetaOutputType
+  MetaOutputType,
+  ProcessStatusUpdateType
 };
+
+namespace ErlangProcessStatus
+{
+enum status
+{
+  Running,
+  Idle,
+  Exit
+};
+
+}
 
 class ErlangOutput
 {
@@ -61,14 +74,19 @@ protected:
   OutputCommandType m_command;
 };
 
-class ErlangVariableListOutput : public ErlangOutput
+class VariableListOutput : public ErlangOutput
 {      
   public:
-    ErlangVariableListOutput(const QStringList& rawData) 
+    VariableListOutput(const QStringList& rawData) 
     : ErlangOutput(rawData, VariableListOutputType) 
     { 
     } 
     void parse();
+    
+    QDomDocument& getDocument();    
+  
+  protected:
+    QDomDocument m_document;
 };
 
 class MetaProcessOutput : public ErlangOutput
@@ -84,10 +102,10 @@ class MetaProcessOutput : public ErlangOutput
     QString getMeta();
 };
 
-class ErlangBreakpointOutput : public ErlangOutput
+class BreakpointOutput : public ErlangOutput
 {
 public:
-  ErlangBreakpointOutput(const QStringList& rawData)
+  BreakpointOutput(const QStringList& rawData)
     : ErlangOutput(rawData, BreakpointOutputType)
   {
   }
@@ -96,6 +114,20 @@ public:
   QString getModule();
   int getLine();
   QString getProcess();  
+};
+
+class ProcessStatusUpdateOutput : public ErlangOutput
+{
+public:
+     ProcessStatusUpdateOutput(const QStringList& rawData)
+    : ErlangOutput(rawData, ProcessStatusUpdateType)
+  {
+  }
+  
+  void parse();
+  QString getProcess();
+  ErlangProcessStatus::status getProcessStatus();
+  QString getProcessAdditionalInfo();
 };
 
 class ErlangCommand

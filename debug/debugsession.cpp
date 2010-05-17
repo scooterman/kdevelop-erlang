@@ -88,8 +88,9 @@ void DebugSession::startDebugger(KDevelop::ILaunchConfiguration* config)
     
     connect(m_erlDebugger, SIGNAL(outputCommand(ErlangOutput*)), this, SLOT(handleDebuggerCommand(ErlangOutput*)));
     
-    
     m_erlDebugger->start(config->config());
+    
+    stateChanged(KDevelop::IDebugSession::StartingState);    
 
     QStringList to_be_interpreted = config->config().readEntry(interpretedModules,QStringList());
 
@@ -184,9 +185,10 @@ void DebugSession::stopDebugger()
     if (m_erlDebugger)
     {
         m_erlDebugger->stop();
+	delete m_erlDebugger;
     }
     
-    emit finished();
+   emit stateChanged(KDevelop::IDebugSession::EndedState);
 }
 
 void DebugSession::restartDebugger()
@@ -215,20 +217,43 @@ void DebugSession::handleDebuggerCommand(ErlangOutput* command)
   {
     case BreakpointOutputType:
       {
-	ErlangBreakpointOutput* i_cmd = static_cast<ErlangBreakpointOutput*>(command);     
+	BreakpointOutput* i_cmd = static_cast<BreakpointOutput*>(command);     
 	
 	m_currentProcess = i_cmd->getProcess();
 	
 	emit breakpointUpdate(i_cmd);      
 	emit showStepInSource(KUrl::fromPath(i_cmd->getModule()), i_cmd->getLine() - 1); 
       
-	emit stateChanged(KDevelop::IDebugSession::PausedState);
+	stateChanged(KDevelop::IDebugSession::PausedState);
       }
       break;    
     case MetaOutputType:
       {
 	MetaProcessOutput* i_cmd = static_cast<MetaProcessOutput*>(command);
 	m_processToMeta[i_cmd->getProcess()] = i_cmd->getMeta();
+      }
+      break;
+    case ProcessStatusUpdateType:
+      {
+	ProcessStatusUpdateOutput* i_cmd = static_cast<ProcessStatusUpdateOutput*>(command);
+	if (i_cmd->getProcessStatus() == ErlangProcessStatus::Running)
+	{
+	  emit stateChanged(KDevelop::IDebugSession::ActiveState);
+	}
+      }
+      break;
+    case VariableListOutputType:
+      {
+	VariableListOutput* i_cmd = static_cast<VariableListOutput*>(command);
+	
+	foreach(DebugCallbackBase* callback, m_callbacks)
+	{
+	    callback->execute(*command);
+	}
+	
+	m_callbacks.clear();
+	
+	emit variableListUpdate(i_cmd);	
       }
       break;
   }

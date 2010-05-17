@@ -4,6 +4,8 @@
 
 -define(DEBUG(Text,Parameters),  io:format("--- " ++ Text ++ "~n", Parameters)).
 -define(OUTPUT(Text, Parameters), io:format("~c" ++ Text ++ "~n" , [1] ++ Parameters)).
+
+
 start() ->
   ?DEBUG("starting debug system on: ~w",[self()]),
   ?DEBUG("erlang:register: [~w]", [erlang:register(internal_meta, spawn(fun() -> start_loop() end))]),
@@ -52,9 +54,10 @@ process_user_input({ action, Action, Pid }) ->
   ?DEBUG("Sending action [~w] to pid [~w]:[~w]", [Action, PID, int:meta(PID, Action)]);
 
 process_user_input({ var_list , Meta }) ->
-  ?DEBUG("Trying to get variable list for MetaProcess [~w]", [Meta]),
   META = list_to_pid(Meta),
-  ?DEBUG("teste [~w]", [int:meta(META, bindings, nostack)]);
+  ?DEBUG("Trying to get variable list for MetaProcess [~w]", [META]),  
+  %?DEBUG("teste: [~w]", [int:get_binding('X',int:meta(META, bindings, nostack))]),  
+  ?OUTPUT("variables_list|~w", [int:meta(META, bindings, nostack)]);
 
 process_user_input({ break , Module , Line }) ->
   ?DEBUG("Trying create a breakpoint for module [~w] on line [~p] ", [Module, Line] ),
@@ -65,29 +68,39 @@ process_user_input({ break , Module , Line }) ->
       ?OUTPUT("break_set|ok|~w }", [Module])
   end.
 
+%%% Message handling
+
+handle({ user_input , UserInput }) -> 
+  process_user_input(UserInput);
+
+handle({int, {new_process, { Process , FunctionInfo , Status , Info} } }) ->
+  ?DEBUG("Trapped a new process info, trying to attach it to debugger... [~w] [~w] [~w]", [FunctionInfo, Status, Info]),
+  case int:attached(Process) of
+    { ok, Meta } ->
+      ?DEBUG("Got MetaProcess [~w] for process [~w]", [Meta, Process]),
+      ?OUTPUT("meta|~w|~w", [ Process, Meta ] );	    
+    error ->
+      ignore
+  end;
+
+handle({ int, { new_status, Process ,break, { Module, Line } } }) ->
+  ?DEBUG("Trapped a break on module [~w] and line [~w]", [Module, Line ]),
+  {ok, Meta} = dbg_iserver:call({get_meta, Process}),
+  ?OUTPUT("variables_list|~w", [int:meta(Meta, bindings, nostack)]),    
+  ?OUTPUT("break|~s|~w|~w",[int:file(Module), Line, Process]);
+
+handle({ int, { new_status, Process , Action, Info } }) ->
+  ?DEBUG("Trapped a status update [~w] on process [~w] and info [~w]", [Action, Process, Info]),
+  ?OUTPUT("process_status_update|~w|~w|~w",[Process, Action, Info]);
+
+handle(Unknown) ->
+  ?DEBUG("received: ~w~n", [Unknown]).
+
+%%% End message handling
+
 loop() ->
-  ?DEBUG("debug: loop" , []),
   receive
-    { user_input , UserInput } ->
-      process_user_input(UserInput),
-      loop();
-
-    {int, {new_process, { Process , FunctionInfo , Status , Info} } } ->
-      ?DEBUG("Trapped a new process info, trying to attach it to debugger... [~w] [~w] [~w]", [FunctionInfo, Status, Info]),
-      case int:attached(Process) of
-	  { ok, Meta } ->
-	    ?DEBUG("Got MetaProcess [~w] for process [~w]", [Meta, Process]),
-	    ?OUTPUT("meta|~w|~w", [ Process, Meta ] );	    
-	   error ->
-	    ignore
-       end,
-       loop();
-    {int, { new_status, Process ,break, { Module, Line } } } ->
-       ?DEBUG("Trapped a break on module [~w] and line [~w]", [Module, Line ]),
-       ?OUTPUT("break|~s|~w|~w",[int:file(Module), Line, Process]),
-       loop();
-
     Data ->
-      ?DEBUG("received: ~w~n", [Data]),
-      loop()
+      handle(Data),
+      loop()    
   end.

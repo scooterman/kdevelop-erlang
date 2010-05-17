@@ -165,13 +165,20 @@ void ErlangDebugger::processLine(QByteArray data)
     
     if (items[0] == "break")
     {
-      output = new ErlangBreakpointOutput(items);
-      
+      output = new BreakpointOutput(items);      
     }
     else if (items[0] == "meta")
     {
       output = new  MetaProcessOutput(items);
-    }    
+    }
+    else if (items[0] == "process_status_update")
+    {
+      output = new  ProcessStatusUpdateOutput(items);
+    }
+    else if (items[0] == "variables_list")
+    {
+      output = new VariableListOutput(items);
+    }
     
     if (output)
     {

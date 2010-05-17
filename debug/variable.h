@@ -28,7 +28,7 @@
 
 namespace ErlangDebugPlugin
 {
-class ErlangVariableListOutput;
+class VariableListOutput;
 class VariableListCallback;
 
 class Variable : public KDevelop::Variable
@@ -43,11 +43,10 @@ public: // Variable overrides
     virtual void attachMaybe(QObject *callback = 0, const char *callbackMethod = 0);
     virtual void fetchMoreChildren();
     QString fullName() const;
-
-private: // Internal
-    friend class VariableListCallback;
+    bool handleProperty(ErlangDebugPlugin::VariableListOutput& variableList);
     
-    void handleProperty(const ErlangVariableListOutput &output);
+private: // Internal
+    friend class VariableListCallback;        
     QString m_fullName;
 };
 }

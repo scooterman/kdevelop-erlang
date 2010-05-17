@@ -31,6 +31,7 @@ namespace ErlangDebugPlugin {
 
 class Variable;
 class DebugSession;
+class VariableListOutput;
 
 class VariableController : public KDevelop::IVariableController
 {
@@ -39,25 +40,22 @@ class VariableController : public KDevelop::IVariableController
 public:
     VariableController(DebugSession* parent);
 
-    virtual KDevelop::Variable* createVariable(KDevelop::TreeModel* model, KDevelop::TreeItem* parent,
+    KDevelop::Variable* createVariable(KDevelop::TreeModel* model, KDevelop::TreeItem* parent,
                                      const QString& expression,
                                      const QString& display = "");
+				     
     virtual QString expressionUnderCursor(KTextEditor::Document* doc, const KTextEditor::Cursor& cursor);
     virtual void addWatch(KDevelop::Variable* variable);
     virtual void addWatchpoint(KDevelop::Variable* variable);
     virtual void update();
-/*
-private slots:
-    void programStopped(const GDBMI::ResultRecord &r);
-*/
+
+private slots:    
+    void handleLocals(VariableListOutput*);    
+    
 private:
-    DebugSession* debugSession() const;
-
-    void updateLocals();
-    void handleLocals(KDevelop::Locals *locals, const QDomDocument &xml);
-    void handleContextNames(const QDomDocument &xml);
-
+    DebugSession* debugSession() const;    
     void handleEvent(KDevelop::IDebugSession::event_t event);
+    VariableListOutput* m_currentVarList;
 };
 
 }

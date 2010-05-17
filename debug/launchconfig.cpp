@@ -89,6 +89,14 @@ void ConfigPage::loadFromConfiguration( const KConfigGroup& cfg, KDevelop::IProj
     {
       includeLibraryListWidget->addItem(project->folder().path() + "ebin/");
     }
+    
+   QString moduleName = cfg.readEntry(ErlangDebugPlugin::callableModule, QString());
+   QString moduleFunction = cfg.readEntry(ErlangDebugPlugin::callableFunction, QString());
+   QString arguments = cfg.readEntry(ErlangDebugPlugin::callableArguments, QString());
+   
+   moduleNameLineEdit->setText(moduleName);
+   moduleFunctionLineEdit->setText(moduleFunction);
+   functionArgumentsLineEdit->setText(arguments);
 }
 
 void ConfigPage::saveToConfiguration( KConfigGroup cfg, KDevelop::IProject* project ) const

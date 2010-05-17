@@ -37,7 +37,8 @@ class ErlangCommand;
 class ErlangDebugger;
 class ErlangDebugger;
 class ErlangOutput;
-class ErlangBreakpointOutput;
+class BreakpointOutput;
+class VariableListOutput;
 
 static QString erlangShellExecPath = "Erlang ERTS Path";
 static QString rebuildDebuggerInterface = "Rebuild erlang debugger interface prior staring";
@@ -69,7 +70,8 @@ public:
     
 
 Q_SIGNALS:
-    void breakpointUpdate(ErlangBreakpointOutput*);
+    void breakpointUpdate(BreakpointOutput*);
+    void variableListUpdate(VariableListOutput*);
     
 public Q_SLOTS:    
     ///called when user selects a different process (not thread) on our stack model

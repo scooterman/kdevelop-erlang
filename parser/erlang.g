@@ -196,13 +196,13 @@ namespace KDevelop
     BEHAVIOUR_DIRECTIVE LPAREN behaviour=ATOM_LITERAL RPAREN
 -> behaviourDeclaration;;
 
-    EXPORT_DIRECTIVE LPAREN LBRACKET #exported_functions=functionSlashArity @ COMMA RBRACKET RPAREN DOT
+    EXPORT_DIRECTIVE LPAREN LBRACKET #exported_functions=functionSlashArity @ COMMA RBRACKET RPAREN
 -> exportDeclaration;;
 
     function_name=ATOM_LITERAL FORWARD_SLASH function_arity=INTEGER_LITERAL
 -> functionSlashArity;;
 
-    IMPORT_DIRECTIVE LPAREN module_name=ATOM_LITERAL COMMA #imported_functions=functionSlashArity @ COMMA RPAREN DOT
+    IMPORT_DIRECTIVE LPAREN module_name=ATOM_LITERAL COMMA #imported_functions=functionSlashArity @ COMMA RPAREN
 -> importDeclaration;;
 
     RECORD_DIRECTIVE LPAREN record_name=ATOM_LITERAL COMMA type_record_fields=typedRecordFields RPAREN
@@ -350,8 +350,8 @@ namespace KDevelop
 -> expr600;;
 
     try/rollback(record_expr=recordExpr)
-    catch(try/rollback(expr800=expr800)
-          catch(functionCall=functionCall))
+    catch(try/rollback(functionCall=functionCall)
+          catch(expr800=expr800))
 -> expr700;;
 
     expr900=expr900 ( COLON expr_max=exprMax | 0)

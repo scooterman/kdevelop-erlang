@@ -31,13 +31,41 @@
 #include "debugsession.h"
 #include "variable.h"
 #include "stringhelpers.h"
+#include "messages.h"
+#include "variable.h"
 
 namespace ErlangDebugPlugin {
 
 VariableController::VariableController(DebugSession* parent)
-    : KDevelop::IVariableController(parent)
+    : KDevelop::IVariableController(parent) , m_currentVarList(0)
 {
-    Q_ASSERT(parent);
+    Q_ASSERT(parent);    
+    connect(parent, SIGNAL(variableListUpdate(VariableListOutput*)), SLOT(handleLocals(VariableListOutput*)));
+}
+
+void VariableController::handleLocals(VariableListOutput* variableList)
+{
+  m_currentVarList = new VariableListOutput(*variableList);
+  
+  QDomDocument& document = variableList->getDocument();
+    
+  QStringList updatable;
+  
+  QDomNodeList lst =  document.elementsByTagName("variable");
+  
+  for (int i = 0; i < lst.size(); ++i)
+  {
+    updatable << lst.at(i).attributes().namedItem("name").nodeValue();    
+  }  
+  
+  QList<KDevelop::Variable*> locals = KDevelop::ICore::self()->debugController()->variableCollection()->locals()->updateLocals(updatable);  
+  
+  foreach(KDevelop::Variable* variable, locals)
+  {
+    static_cast<Variable*>(variable)->handleProperty(*variableList);
+  } 
+  
+  document.childNodes();
 }
 
 DebugSession *VariableController::debugSession() const

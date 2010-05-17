@@ -27,20 +27,18 @@
 namespace ErlangDebugPlugin
 {
 class DebugSession;
-class ErlangBreakpointOutput;
+class BreakpointOutput;
 
 class ErlangBreakpointController : public KDevelop::IBreakpointController 
 {
   Q_OBJECT
 public:
     ErlangBreakpointController(DebugSession* parent);
-
-protected:
     virtual void sendMaybe(KDevelop::Breakpoint* breakpoint);
 
 private slots:
     void stateChanged(KDevelop::IDebugSession::DebuggerState state);
-    void hitBreakpoint(ErlangBreakpointOutput* breakpoint);
+    void hitBreakpoint(BreakpointOutput* breakpoint);
     
 private:
     DebugSession *debugSession();

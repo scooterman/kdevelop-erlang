@@ -19,6 +19,7 @@
 */
 
 #include "messages.h"
+#include "kdebug.h"
 
 namespace ErlangDebugPlugin
 {
@@ -38,21 +39,21 @@ ErlangOutput::~ErlangOutput()
 {
 }
 
-void ErlangBreakpointOutput::parse()
+void BreakpointOutput::parse()
 {
 }
 
-QString ErlangBreakpointOutput::getProcess()
+QString BreakpointOutput::getProcess()
 {
   return m_rawData[3];
 }
   
-int ErlangBreakpointOutput::getLine()
+int BreakpointOutput::getLine()
 {
   return m_rawData[2].toInt();
 }
 
-QString ErlangBreakpointOutput::getModule()
+QString BreakpointOutput::getModule()
 {
   return m_rawData[1];
 }
@@ -100,6 +101,30 @@ QString ContinueCommand::getCommand()
   return QString("{ action, continue , \"%1\" }.").arg(m_meta);
 }
 
+QString ProcessStatusUpdateOutput::getProcess()
+{
+  return m_rawData[1];
+}
+
+QString ProcessStatusUpdateOutput::getProcessAdditionalInfo()
+{
+  return m_rawData[3];
+}
+
+ErlangProcessStatus::status ProcessStatusUpdateOutput::getProcessStatus()
+{
+  if (m_rawData[2] == "running")
+    return ErlangProcessStatus::Running;
+  else if (m_rawData[2] == "exit")
+    return ErlangProcessStatus::Exit;
+  else
+    return ErlangProcessStatus::Idle;
+}
+
+void ProcessStatusUpdateOutput::parse()
+{
+}
+
 BreakCommand::BreakCommand(QString module, unsigned int line): 
   ErlangCommand("", Break)
   ,m_module(module)
@@ -122,8 +147,59 @@ QString BreakCommand::getCommand()
   return QString("{ break, %1, %2 }.").arg(m_module).arg(m_line);
 }
 
-void ErlangVariableListOutput::parse()
+void inner_parse(QString& input, int currentPos, QDomDocument& outputDoc)
 {
+  QDomElement variables = outputDoc.createElement("Variables");
+  
+  while (currentPos < input.length())
+  {
+    if (input[currentPos] == '{')
+    {
+      QDomElement curr_var = outputDoc.createElement("variable");
+      input[++currentPos]; // reading (')
+      QString var_name;
+      while (input[++currentPos] != '\'')
+      {
+	var_name += input[currentPos];
+      }
+      input[++currentPos]; //reading (,)
+      
+      QString var_value;
+      while (input[++currentPos] != '}')
+      {
+	var_value += input[currentPos];
+      }            
+      
+      curr_var.setAttribute("name", var_name);
+      curr_var.appendChild(outputDoc.createTextNode(var_value));
+      
+      variables.appendChild(curr_var);
+    }
+    else
+    {
+      currentPos++;
+    }
+  }
+  
+  outputDoc.appendChild(variables);
+}
+
+QDomDocument& VariableListOutput::getDocument()
+{
+  return m_document;
+}
+
+void VariableListOutput::parse()
+{
+  QString values = m_rawData[1];
+  
+  values.remove(0,1);
+  values.remove(values.length() - 1, 1);
+ 
+    
+  inner_parse(values, 0, m_document);
+ 
+  kDebug() << m_document.toString();
 }
 
 FinishCommand::FinishCommand(QString meta): 
