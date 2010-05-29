@@ -245,7 +245,7 @@ int Lexer::nextTokenKind()
     }
     else if (it->unicode() == '?')
     {
-        //TODO wtf is this?
+        token = Parser::Token_QUESTION;
     }
     else if (it->unicode() == '%')
     {
@@ -482,7 +482,9 @@ int Lexer::nextTokenKind()
             token = Parser::Token_INCLUDE_DIRECTIVE;
         } else if (name == "behaviour"){
 	  token = Parser::Token_BEHAVIOUR_DIRECTIVE;
-	}
+	} else if (name == "define"){
+	  token = Parser::Token_DEFINE_DIRECTIVE;
+	}	
         else
         {
             token = Parser::Token_ATOM_LITERAL;

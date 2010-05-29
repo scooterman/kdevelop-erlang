@@ -58,7 +58,7 @@ QString BreakpointOutput::getModule()
   return m_rawData[1];
 }
   
-ErlangCommand::ErlangCommand(QString meta, InterpreterCommand command)
+ErlangCommand::ErlangCommand(QString meta, InterpreterCommand::InterpreterCommand command)
   : m_meta(meta)
 ,m_command(command)
 {
@@ -82,7 +82,7 @@ ErlangCommand::~ErlangCommand()
 {
 }
 
-StepCommand::StepCommand(QString meta): ErlangCommand(meta, Step)
+StepCommand::StepCommand(QString meta): ErlangCommand(meta, InterpreterCommand::STEP)
 {
 }
 
@@ -92,7 +92,7 @@ QString StepCommand::getCommand()
 }
 
 ContinueCommand::ContinueCommand(QString meta) : 
-  ErlangCommand(meta, Continue)
+  ErlangCommand(meta, InterpreterCommand::CONTINUE)
 {
 }
 
@@ -126,14 +126,14 @@ void ProcessStatusUpdateOutput::parse()
 }
 
 BreakCommand::BreakCommand(QString module, unsigned int line): 
-  ErlangCommand("", Break)
+  ErlangCommand("", InterpreterCommand::BREAK)
   ,m_module(module)
   ,m_line(line)
 {
 }
 
 NextCommand::NextCommand(QString meta):
-  ErlangCommand(meta, Next)
+  ErlangCommand(meta, InterpreterCommand::NEXT)
 {
 }
 
@@ -203,7 +203,7 @@ void VariableListOutput::parse()
 }
 
 FinishCommand::FinishCommand(QString meta): 
-  ErlangCommand(meta, Finish)
+  ErlangCommand(meta, InterpreterCommand::FINISH)
 {  
 }
 
@@ -218,7 +218,7 @@ QString InterpretModuleCommand::getCommand()
 }
 
 InterpretModuleCommand::InterpretModuleCommand(QString moduleName)
-  : ErlangCommand("", Interpret)
+  : ErlangCommand("", InterpreterCommand::INTERPRET)
   , m_module(moduleName)
 {
 }
@@ -229,12 +229,12 @@ QString VariablesInContextCommand::getCommand()
 }
 
 VariablesInContextCommand::VariablesInContextCommand(QString meta)
-  : ErlangCommand("",VariableList) , m_meta(meta)
+  : ErlangCommand("",InterpreterCommand::VARIABLE_LIST) , m_meta(meta)
 {
 }
 
 SpawnFunctionCommand::SpawnFunctionCommand(QString module, QString function, QString parameters)
-  : ErlangCommand("", SpawnFunction)
+  : ErlangCommand("", InterpreterCommand::SPAWN_FUNCTION)
   , m_module(module)
   , m_function(function)
   , m_parameters(parameters)
@@ -245,5 +245,18 @@ QString SpawnFunctionCommand::getCommand()
 {
   return QString("{ launch , { %1 , %2, [ %3 ] } }.").arg(m_module).arg(m_function).arg(m_parameters);
 }
+
+QString RemoveBreakpoint::getCommand()
+{
+  return QString("{ break_remove, %1 , %2 }.").arg(m_module).arg(m_line);
+}
+
+RemoveBreakpoint::RemoveBreakpoint(QString module, unsigned int line)
+: ErlangCommand("", InterpreterCommand::REMOVE_BREAKPOINT),
+  m_module(module), 
+  m_line(line)
+{
+}
+
 
 }

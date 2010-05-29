@@ -52,6 +52,8 @@ namespace KDevelop
 %ast_extra_members
 [:
   KDevelop::DUContext* ducontext;
+
+  virtual ~AstNode() { }
 :]
 
 ------------------------------------------------------------
@@ -175,8 +177,8 @@ namespace KDevelop
 
 -- The actual grammar starts here.
 
-      functions=functionOrRule DOT form
-    | attribute=attribute DOT form
+      attribute=attribute DOT form_next=form
+    | functions=functionOrRule DOT form_next=form
     | 0
 -> form;;
 
@@ -186,6 +188,7 @@ namespace KDevelop
             | import_declaration=importDeclaration
             | record_declaration=recordDeclaration
             | file_declaration=fileDeclaration
+            | define_declaration=defineDeclaration
             | behaviour_declaration=behaviourDeclaration
             | attribute_declaration=attributeDeclaration )
 -> attribute;;
@@ -210,6 +213,9 @@ namespace KDevelop
 
     FILE_DIRECTIVE LPAREN file_name=STRING_LITERAL COMMA line=INTEGER_LITERAL RPAREN
 -> fileDeclaration;;
+
+    DEFINE_DIRECTIVE LPAREN define_name=VARIABLE (argument_list=argumentList | 0 ) COMMA expression=expr RPAREN
+-> defineDeclaration;;
 
     ATOM_LITERAL LPAREN name=STRING_LITERAL COMMA line=INTEGER_LITERAL RPAREN
 -> attributeDeclaration;;
@@ -302,7 +308,7 @@ namespace KDevelop
     #fc=functionOrRuleClause @ SEMICOLON
 -> functionOrRule;;
 
-    function_name=atom1 clause_args=clauseArgs clause_guard=clauseGuard (body=clauseBody | rule_body=ruleBody)
+   function_name=atom1 clause_args=clauseArgs clause_guard=clauseGuard (body=clauseBody | rule_body=ruleBody)
 ->functionOrRuleClause;;
 
     argument_list=argumentList
@@ -314,40 +320,51 @@ namespace KDevelop
     LEADS_TO exprs=exprs
 -> clauseBody;;
 
-      CATCH expr=expr
-    | expr100=expr100
--> expr;;
+%< expr700
+%pre CATCH 50
+%bin ASSIGN 100 %right
+%bin EXCLAMATION 100 %right
+%bin ORELSE 150 %right
+%bin ANDALSO 160 %right
+%bin ?[: compAllowed :] IS_EQUAL [: compAllowed = false; :] 200 %left
+%bin ?[: compAllowed :] IS_GREATER [: compAllowed = false; :] 200 %left
+%bin ?[: compAllowed :] IS_GREATER_OR_EQUAL [: compAllowed = false; :] 200 %left
+%bin ?[: compAllowed :] IS_NOT_EQUAL [: compAllowed = false; :] 200 %left
+%bin ?[: compAllowed :] IS_SMALLER [: compAllowed = false; :] 200 %left
+%bin ?[: compAllowed :] IS_SMALLER_OR_EQUAL [: compAllowed = false; :] 200 %left
+%bin ?[: compAllowed :] EXACT_NOT_EQUATIONAL [: compAllowed = false; :] 200 %left
+%bin ?[: compAllowed :] EXACT_EQUATIONAL [: compAllowed = false; :] 200 %left
+%bin LIST_ADDITION 300 %right
+%bin LIST_DIFFERENCE 300 %right
+%bin PLUS 400 %right
+%bin MINUS 400 %right
+%bin BIT_OR 400 %right
+%bin BIT_XOR 400 %right
+%bin SL 400 %right
+%bin SR 400 %right
+%bin OR 400 %right
+%bin XOR 400 %right
+%bin FORWARD_SLASH 500 %right
+%bin MUL 500 %right
+%bin INT_DIV 500 %right
+%bin INT_REM 500 %right
+%bin BIT_AND 500 %right
+%bin AND 500 %right
+%pre ?[: preAllowed :] PLUS [: preAllowed = false; :] 600
+%pre ?[: preAllowed :] MINUS [: preAllowed = false; :] 600
+%pre ?[: preAllowed :] BIT_NOT [: preAllowed = false; :] 600
+%pre ?[: preAllowed :] NOT [: preAllowed = false; :] 600
+%> expr [:
+   bool preAllowed = true;
+   bool compAllowed = true;
+:] ;;
 
-      expr150=expr150 ((ASSIGN | EXCLAMATION) expr100=expr100 | 0 )
--> expr100;;
 
-      expr160=expr160 ( ORELSE expr150=expr150 | 0)
--> expr150;;
-
-      expr120=expr200 ( ANDALSO expr160=expr160 | 0) 
--> expr160;;
-
-      expr300=expr300 ( comp_op=compOp expr300=expr300  | 0)
--> expr200;;
-    
-      expr400=expr400 ( list_op=listOp expr300=expr300 | 0)
--> expr300;;
-
-    expr500=expr500 expr400a=expr400a
--> expr400;;
-
-    add_op=addOp expr500=expr500 expr400=expr400a | 0
--> expr400a;;
-
-    expr600=expr600 expr500=expr500a
--> expr500;;
-
-    mult_op=multOp expr600=expr600 expr500a=expr500a | 0
--> expr500a;;
-
-      prefix_op=prefixOp expr700=expr700
-    | expr700=expr700
--> expr600;;
+   PLUS
+ | MINUS
+ | BIT_NOT
+ | NOT
+-> prefixOp ;;
 
     try/rollback(record_expr=recordExpr)
     catch(try/rollback(functionCall=functionCall)
@@ -364,7 +381,7 @@ namespace KDevelop
     DOT atom1 expr900a=expr900a | expr_max=exprMax expr900a=expr900a | 0
 -> expr900a;;
 
-      variable=VARIABLE
+      var=variable
     | atomic=atomic
     | try/rollback(binary=binary)
       catch(binary_comprehension=binaryComprehension)
@@ -379,7 +396,11 @@ namespace KDevelop
     | fun_expr=funExpr
     | try_expr=tryExpr
     | query_expr=queryExpr
+    | QUESTION define_name=VARIABLE (define_function=argumentList | 0)
 -> exprMax;;
+
+    literal=VARIABLE
+-> variable;;
 
       RBRACKET
     | PIPE expr=expr RBRACKET
@@ -510,44 +531,6 @@ namespace KDevelop
     | ATOM_LITERAL
     | #strings=STRING_LITERAL
 -> atomic;;
-
-      PLUS
-    | MINUS
-    | BIT_NOT
-    | NOT
--> prefixOp;;
-
-      FORWARD_SLASH
-    | MUL
-    | INT_DIV
-    | INT_REM
-    | BIT_AND
-    | AND
--> multOp;;
-
-      PLUS
-    | MINUS
-    | BIT_OR
-    | BIT_XOR
-    | SL
-    | SR
-    | OR
-    | XOR
--> addOp;;
-
-      PLUS PLUS
-    | MINUS MINUS
--> listOp;;
-
-      IS_EQUAL
-    | IS_GREATER
-    | IS_GREATER_OR_EQUAL
-    | IS_NOT_EQUAL
-    | IS_SMALLER
-    | IS_SMALLER_OR_EQUAL
-    | EXACT_EQUATIONAL
-    | EXACT_NOT_EQUATIONAL
--> compOp;;
 
     #rc=ruleClause @ SEMICOLON
 -> ruleClauses;;

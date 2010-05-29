@@ -5,7 +5,7 @@
 -export([start/2,stop/1]).
 
 start(Type, StartArgs) ->
-    case %{APPNAME}_sup:start_link(StartArgs) of
+    case %{APPNAME}_sup:start_link() of
       {ok, Pid} ->
 	  {ok, Pid};
       Error ->

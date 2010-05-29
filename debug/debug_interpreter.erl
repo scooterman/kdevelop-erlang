@@ -59,13 +59,17 @@ process_user_input({ var_list , Meta }) ->
   %?DEBUG("teste: [~w]", [int:get_binding('X',int:meta(META, bindings, nostack))]),  
   ?OUTPUT("variables_list|~w", [int:meta(META, bindings, nostack)]);
 
+process_user_input({ break_remove , Module , Line }) ->
+  ?DEBUG("Trying remove a breakpoint for module [~w] on line [~p] ", [Module, Line] ),
+  ?OUTPUT("break_remove|~w|~w|~p", [int:delete_break(Module, Line), Module, Line]);
+
 process_user_input({ break , Module , Line }) ->
-  ?DEBUG("Trying create a breakpoint for module [~w] on line [~p] ", [Module, Line] ),
+  ?DEBUG("Trying create a breakpoint for module [~s] on line [~p] ", [Module, Line] ),
   case int:break(Module, Line) of
     ok ->
       ?OUTPUT("break_set|ok|~w", [Module]);
     { error, break_exists } ->
-      ?OUTPUT("break_set|ok|~w }", [Module])
+      ?OUTPUT("break_set|ok|~w", [Module])
   end.
 
 %%% Message handling

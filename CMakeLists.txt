@@ -33,6 +33,8 @@ set(kdeverlanglanguagesupport_PART_SRCS
     parsejob.cpp
     duchain/builders/contextbuilder.cpp
     duchain/builders/declarationbuilder.cpp
+    duchain/declarations/functiondeclaration.cpp
+    duchain/declarations/variabledeclaration.cpp
     #navigation/fieldnavigationcontext.cpp
     #navigation/navigationwidget.cpp
     #navigation/valuenavigationcontext.cpp

@@ -37,16 +37,17 @@ class EditorIntegrator;
 class ClassDeclaration;
 class FunctionDeclaration;
 
-typedef KDevelop::AbstractDeclarationBuilder<AstNode, Atom1Ast, ContextBuilder> DeclarationBuilderBase;
+typedef KDevelop::AbstractDeclarationBuilder<AstNode, AstNode, ContextBuilder> DeclarationBuilderBase;
 
 class DeclarationBuilder : public DeclarationBuilderBase
 {
 public:
     DeclarationBuilder(EditorIntegrator* editor);
     DeclarationBuilder();
-
-    virtual void visitfunctionOrRuleClause(FunctionOrRuleClauseAst* node);
+    
 protected:
+    virtual void visitExprMax(ExprMaxAst* node);
+    virtual void visitFunctionOrRuleClause(erlang::FunctionOrRuleClauseAst* node);
     virtual void startVisiting(AstNode* formAst);
 };
 

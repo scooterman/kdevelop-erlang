@@ -1,22 +1,23 @@
-/*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-*/
+/***************************************************************************
+ *   This file is part of KDevelop                                         *
+ *   Copyright 2010 Victor Vicente de Carvalho                             *
+ *   		      <victor.v.carvalho@gmail.com>                        *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU Library General Public License as       *
+ *   published by the Free Software Foundation; either version 2 of the    *
+ *   License, or (at your option) any later version.                       *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU Library General Public     *
+ *   License along with this program; if not, write to the                 *
+ *   Free Software Foundation, Inc.,                                       *
+ *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.         *
+ ***************************************************************************/
 
 #include "contextbuilder.h"
 
@@ -49,14 +50,22 @@ ContextBuilder::~ContextBuilder()
 {
 }
 
-KDevelop::QualifiedIdentifier ContextBuilder::identifierForNode(erlang::Atom1Ast* id)
+KDevelop::QualifiedIdentifier ContextBuilder::identifierForNode(erlang::AstNode* id)
 {
-  if (!id || (id && id->literal < 0))  
-    return KDevelop::QualifiedIdentifier();
-  
-  return KDevelop::QualifiedIdentifier();
-  
-  //return KDevelop::QualifiedIdentifier(editor()->parseSession()->symbol(id->literal));  
+  Atom1Ast* atom = 0;
+  VariableAst* variable = 0;
+  if (( atom = dynamic_cast<Atom1Ast*>(id)) != 0)
+  {
+    return KDevelop::QualifiedIdentifier(editor()->parseSession()->symbol(atom->literal));  
+  }
+  else if ((variable = dynamic_cast<VariableAst*>(id)) != 0)
+  {
+    return KDevelop::QualifiedIdentifier(editor()->parseSession()->symbol(variable->literal));  
+  }
+  else
+  {
+    return KDevelop::QualifiedIdentifier(); 
+  }
 }
 
 KDevelop::ReferencedTopDUContext ContextBuilder::build(const KDevelop::IndexedString& url, AstNode* node,
@@ -120,9 +129,9 @@ void ContextBuilder::startVisiting(AstNode* node)
 
 void ContextBuilder::visitFunctionOrRuleClause(FunctionOrRuleClauseAst* node)
 {
-  /*if (node->function_name)
+  if (node->function_name)
   {
-    openContext(node->clause_args, KDevelop::DUContext::Function,node->function_name);
+    openContext(node->clause_args, KDevelop::DUContext::Function, node->function_name);
     visitNode(node->clause_args);
     closeContext();
     visitNode(node->clause_guard);
@@ -132,7 +141,7 @@ void ContextBuilder::visitFunctionOrRuleClause(FunctionOrRuleClauseAst* node)
   else
   {
     DefaultVisitor::visitFunctionOrRuleClause(node);
-  }*/
+  }
 }
 
 }

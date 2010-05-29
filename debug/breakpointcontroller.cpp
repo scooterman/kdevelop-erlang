@@ -44,10 +44,20 @@ ErlangBreakpointController::ErlangBreakpointController(DebugSession* parent): IB
 
 void ErlangBreakpointController::sendMaybe(KDevelop::Breakpoint* breakpoint)
 {
-  if (breakpoint->kind() == KDevelop::Breakpoint::CodeBreakpoint && !m_ids.contains(breakpoint))
+  if (breakpoint->kind() == KDevelop::Breakpoint::CodeBreakpoint)
   {
-    debugSession()->sendBreakpoint(breakpoint->url().fileName().split(".")[0], breakpoint->line() + 1);        
-    m_ids[breakpoint] = breakpoint->url().path() + ":" +  QString::number(breakpoint->line());
+    QString module = breakpoint->url().fileName().split(".")[0];
+    if (breakpoint->deleted())
+    {
+      debugSession()->removeBreakpoint(module, breakpoint->line() + 1);
+      if (m_ids.contains(breakpoint))
+	m_ids.remove(breakpoint);
+    }
+    else if (!m_ids.contains(breakpoint))
+    {
+      debugSession()->sendBreakpoint(module, breakpoint->line() + 1);        
+      m_ids[breakpoint] = breakpoint->url().path() + ":" +  QString::number(breakpoint->line());
+    }
   }
 }
 

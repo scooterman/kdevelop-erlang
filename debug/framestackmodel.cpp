@@ -34,6 +34,11 @@ void FrameStackModel::fetchThreads()
     i.nr = 0;
     i.name = "main thread";
     threadsList << i;
+    
+    i.nr = 1;
+    i.name = "test";
+    threadsList << i;
+    
     setThreads(threadsList);
     setCurrentThread(0);
 }

@@ -48,13 +48,19 @@ void DebugSession::requestVariables(ErlangDebugPlugin::DebugCallbackBase* callba
     executeCmd();
 }
 
+void DebugSession::removeBreakpoint(QString module, int line)
+{
+    m_commands.enqueue(new RemoveBreakpoint(module,line));
+    executeCmd();
+}
+
 void DebugSession::interpretMoule(QString module)
 {
     if (!m_interpretedModules.contains(module))
     {
-    m_interpretedModules.append(module);
-    m_commands.enqueue(new InterpretModuleCommand(module));
-    executeCmd();
+      m_interpretedModules.append(module);
+      m_commands.enqueue(new InterpretModuleCommand(module));
+      executeCmd();
     }
 }
 
@@ -189,6 +195,7 @@ void DebugSession::stopDebugger()
     }
     
    emit stateChanged(KDevelop::IDebugSession::EndedState);
+   raiseEvent(program_state_changed);
 }
 
 void DebugSession::restartDebugger()
@@ -225,6 +232,7 @@ void DebugSession::handleDebuggerCommand(ErlangOutput* command)
 	emit showStepInSource(KUrl::fromPath(i_cmd->getModule()), i_cmd->getLine() - 1); 
       
 	stateChanged(KDevelop::IDebugSession::PausedState);
+	raiseEvent(program_state_changed);
       }
       break;    
     case MetaOutputType:
@@ -239,6 +247,7 @@ void DebugSession::handleDebuggerCommand(ErlangOutput* command)
 	if (i_cmd->getProcessStatus() == ErlangProcessStatus::Running)
 	{
 	  emit stateChanged(KDevelop::IDebugSession::ActiveState);
+	  raiseEvent(program_state_changed);
 	}
       }
       break;

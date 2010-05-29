@@ -5,9 +5,11 @@
 -export([start_link/0]).
 -export([init/1]).
 
-start_link() ->
-    supervisor:start_link(%{APPNAME}_sup, []).
+-define(SERVER, ?MODULE).
 
-init(_Args) ->
+start_link() ->
+    supervisor:start_link({local, ?SERVER}, ?MODULE, []).
+
+init([]) ->
   %%Your code here
-    ok.
+  {ok,{{one_for_all,0,1}, []}}.

@@ -1,7 +1,7 @@
 /***************************************************************************
  *   This file is part of KDevelop                                         *
- *   Copyright 2008 Niko Sams <niko.sams@gmail.com>                        *
- *                                                                         *
+ *   Copyright 2010 Victor Vicente de Carvalho                             *
+ *                             <victor.v.carvalho@gmail.com>               *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU Library General Public License as       *
  *   published by the Free Software Foundation; either version 2 of the    *
@@ -26,33 +26,49 @@
 #include "erlangast.h"
 #include "../../parser/parsesession.h"
 #include "../../parser/editorintegrator.h"
+#include "../declarations/functiondeclaration.h"
+#include "../declarations/variabledeclaration.h"
 
 using namespace KTextEditor;
 using namespace KDevelop;
 namespace erlang
 {
-  DeclarationBuilder::DeclarationBuilder(EditorIntegrator* editor)
-    {
-        setEditor(editor);
-   }
+DeclarationBuilder::DeclarationBuilder(EditorIntegrator* editor)
+{
+  setEditor(editor);
+}
    
-   DeclarationBuilder::DeclarationBuilder()
-   {
-   }
-   
-void DeclarationBuilder::visitfunctionOrRuleClause(FunctionOrRuleClauseAst* node)
+DeclarationBuilder::DeclarationBuilder()
+{
+}
+
+void DeclarationBuilder::visitFunctionOrRuleClause(erlang::FunctionOrRuleClauseAst* node)
 {
   if (node->function_name)
   {
-    openContext(node->clause_args, KDevelop::DUContext::Function,node->function_name);
-    visitNode(node->clause_args);
-    visitNode(node->clause_guard);
-    visitNode(node->rule_body);
-    visitNode(node->body);    
+    FunctionDeclaration* func = openDeclaration<FunctionDeclaration>(node->function_name, node->body);
+    DeclarationBuilderBase::visitFunctionOrRuleClause(node);    
+    closeDeclaration();
   }
   else
   {
     DefaultVisitor::visitFunctionOrRuleClause(node);
+  }
+}
+
+void DeclarationBuilder::visitExprMax(ExprMaxAst* node)
+{
+  if (node->var)
+  {
+    SimpleRange range = editorFindRange(node->var, node->var);    
+    VariableDeclaration *dec = openDeclaration<VariableDeclaration>(identifierForNode(node->var), range);
+    dec->setKind(Declaration::Instance);
+    eventuallyAssignInternalContext();
+    closeDeclaration();
+  }
+  else
+  {
+    erlang::DefaultVisitor::visitExprMax(node);
   }
 }
 

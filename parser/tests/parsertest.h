@@ -20,6 +20,7 @@ private Q_SLOTS:
     void testNumeric();
     void testVariable();
     void testRecord();
+    void testDefine();
 };
 
 }

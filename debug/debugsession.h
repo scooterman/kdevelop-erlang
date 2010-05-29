@@ -67,7 +67,7 @@ public:
     void sendBreakpoint(QString location, int line);
     void interpretMoule(QString module);
     void spawn(QString module, QString function, QString arguments); 
-    
+    void removeBreakpoint(QString module, int line);
 
 Q_SIGNALS:
     void breakpointUpdate(BreakpointOutput*);
@@ -91,6 +91,7 @@ public Q_SLOTS:
     virtual void restartDebugger();
     virtual bool restartAvaliable() const;
     virtual KDevelop::IDebugSession::DebuggerState state() const;
+    
  
 private slots:
   

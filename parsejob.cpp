@@ -170,6 +170,7 @@ void ParseJob::run()
     bool matched = parseSession.parse ( &formAst );
 
     EditorIntegrator editor;
+    editor.setParseSession(&parseSession);
     DeclarationBuilder builder;
     builder.setEditor ( &editor );
     top = builder.build ( document(), formAst, top );

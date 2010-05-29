@@ -28,18 +28,23 @@
 namespace ErlangDebugPlugin
 {
 
+namespace InterpreterCommand
+{
 enum InterpreterCommand
 {
-  Break,
-  ConditionalBreak,
-  Continue,
-  Step,
-  Next,
-  Finish,
-  Interpret,
-  VariableList,
-  SpawnFunction
+  BREAK,
+  CONDITIONAL_BREAK,
+  CONTINUE,
+  STEP,
+  NEXT,
+  FINISH,
+  INTERPRET,
+  VARIABLE_LIST,
+  SPAWN_FUNCTION,
+  REMOVE_BREAKPOINT
 };
+
+}
 
 enum OutputCommandType
 {
@@ -133,12 +138,12 @@ public:
 class ErlangCommand
 {
 public:
-  ErlangCommand(QString meta, InterpreterCommand command);  
+  ErlangCommand(QString meta, InterpreterCommand::InterpreterCommand command);  
   virtual QString getCommand() = 0;
   virtual ~ErlangCommand();
 protected:
   QString m_meta;
-  InterpreterCommand m_command;
+  InterpreterCommand::InterpreterCommand m_command;
 };
 
 class StepCommand : public ErlangCommand
@@ -201,14 +206,24 @@ protected:
     QString m_meta;  
 };
 
+class RemoveBreakpoint : public ErlangCommand
+{
+public:
+  RemoveBreakpoint(QString module, unsigned int line);
+  virtual QString getCommand();
+protected:
+      unsigned int m_line;
+  QString m_module;
+};
+
 class BreakCommand : public ErlangCommand
 {
 public:
   BreakCommand(QString module, unsigned int line);
   virtual QString getCommand();
-protected:
-  unsigned int m_line;
+protected:  
   QString m_module;
+  unsigned int m_line;
 };
 
 }
