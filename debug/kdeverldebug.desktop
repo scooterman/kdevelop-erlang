@@ -2,6 +2,7 @@
 Type=Service
 Exec=blubb
 Comment=This plugin provides a frontend for Erlang debugger
+Comment[en_GB]=This plugin provides a frontend for Erlang debugger
 Comment[es]=Este complemento proporciona una interfaz para el depurador de Erlang.
 Comment[fr]=Ce module externe fournit une interface pour Erlang
 Comment[pt]=Este 'plugin' oferece uma interface para o depurador de Erlang
@@ -10,6 +11,7 @@ Comment[sv]=Insticksprogrammet tillhandahåller ett gränssnitt för Erlang avlu
 Comment[uk]=Цей додаток є оболонкою до зневадника Erlang
 Comment[x-test]=xxThis plugin provides a frontend for Erlang debuggerxx
 Name=Erlang debugger Support
+Name[en_GB]=Erlang debugger Support
 Name[es]=Implementación del depurador de Erlang
 Name[fr]=Prise en charge du langage Erlang
 Name[pt]=Suporte para o Depurador de Erlang
