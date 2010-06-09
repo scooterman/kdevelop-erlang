@@ -54,19 +54,54 @@
 namespace ErlangDebugPlugin {
 
 ErlangDebugJob::ErlangDebugJob( DebugSession* session, KDevelop::ILaunchConfiguration* cfg, QObject* parent)
-    : KDevelop::OutputJob(parent), m_proc(0), m_session(session), m_launchConfig(cfg)
+    : m_proc(0), m_session(session), m_launchConfig(cfg)
 {
     setCapabilities(Killable);
 
-    connect(m_session, SIGNAL(applicationStandardOutputLines(QStringList)), SLOT(stderrReceived(QStringList)));
-    connect(m_session, SIGNAL(applicationStandardErrorLines(QStringList)), SLOT(stdoutReceived(QStringList)));
-    connect(m_session, SIGNAL(finished()), SLOT(done()) );
+    connect(m_session, SIGNAL(stdoutReceived(QString)), SLOT(stdoutReceived(QString)));    
     
     setObjectName(cfg->name());
+   
+
 }
 
 void ErlangDebugJob::start()
 {
+    setBehaviours(KDevelop::IOutputView::AllowUserClose | KDevelop::IOutputView::AutoScroll);    
+    setStandardToolView(KDevelop::IOutputView::DebugView);
+    setModel( new KDevelop::OutputModel(), KDevelop::IOutputView::TakeOwnership );
+    
+    KDevelop::EnvironmentGroupList l(KGlobal::config());
+    IExecutePlugin * iface = KDevelop::ICore::self()->pluginController()->pluginForExtension("org.kdevelop.IExecutePlugin")->extension<IExecutePlugin>();
+    
+    Q_ASSERT(iface); 
+    QString err;
+    QString envgrp = iface->environmentGroup( m_launchConfig );
+    
+    if( envgrp.isEmpty() )
+    {
+        kWarning() << i18n("No environment group specified, looks like a broken "
+        "configuration, please check run configuration '%1'. "
+        "Using default environment group.", m_launchConfig->name() );
+        envgrp = l.defaultGroup();
+    }
+    
+    QStringList arguments = iface->arguments( m_launchConfig, err );
+    
+    if( !err.isEmpty() )
+    {
+        setError( -1 );
+        setErrorText( err );
+    }
+    
+    if( error() != 0 )
+    {
+        emitResult();
+        return;
+    }
+          
+    startOutput();  
+    
     m_session->startDebugger(m_launchConfig);
 }
 
@@ -104,6 +139,14 @@ KDevelop::OutputModel* ErlangDebugJob::model()
 {
     return dynamic_cast<KDevelop::OutputModel*>( KDevelop::OutputJob::model() );
 }
+
+void ErlangDebugJob::stdoutReceived(QString data)
+{
+    if (KDevelop::OutputModel* m = model()) {
+        m->appendLine(data);
+    }
+}
+
 
 }
 

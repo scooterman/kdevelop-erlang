@@ -54,11 +54,11 @@ DebugSession* ErlangDebuggerPlugin::createSession() const
 {
     DebugSession *session = new DebugSession();
     KDevelop::ICore::self()->debugController()->addSession(session);
-    connect(session, SIGNAL(showMessage(QString,int)), SLOT(controllerMessage(QString,int)));
-    connect(session, SIGNAL(reset()), SIGNAL(reset()));
+    //connect(session, SIGNAL(showMessage(QString,int)), SLOT(controllerMessage(QString,int)));
+    //connect(session, SIGNAL(reset()), SIGNAL(reset()));
     connect(session, SIGNAL(finished()), SLOT(slotFinished()));
-    connect(session, SIGNAL(raiseOutputViews()), SIGNAL(raiseOutputViews()));
-    connect(session, SIGNAL(raiseVariableViews()), SIGNAL(raiseVariableViews()));
+    //connect(session, SIGNAL(raiseOutputViews()), SIGNAL(raiseOutputViews()));
+    //connect(session, SIGNAL(raiseVariableViews()), SIGNAL(raiseVariableViews()));
     return session;
 }
 

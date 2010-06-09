@@ -149,7 +149,7 @@ KJob* ErlangLauncher::start(const QString& launchMode, KDevelop::ILaunchConfigur
     }
     if( launchMode == "debug" )
     {
-        return new ErlangDebugJob( m_plugin->createSession(), cfg );
+        return new ErlangDebugJob( m_plugin->createSession(), cfg, m_plugin);
     }
     kWarning() << "Unknown launch mode" << launchMode << "for config:" << cfg->name();
     return 0;

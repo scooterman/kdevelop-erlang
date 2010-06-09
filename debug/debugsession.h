@@ -72,6 +72,7 @@ public:
 Q_SIGNALS:
     void breakpointUpdate(BreakpointOutput*);
     void variableListUpdate(VariableListOutput*);
+    void stdoutReceived(QString data);
     
 public Q_SLOTS:    
     ///called when user selects a different process (not thread) on our stack model
@@ -91,8 +92,7 @@ public Q_SLOTS:
     virtual void restartDebugger();
     virtual bool restartAvaliable() const;
     virtual KDevelop::IDebugSession::DebuggerState state() const;
-    
- 
+     
 private slots:
   
     void executeCmd();    

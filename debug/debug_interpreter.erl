@@ -2,8 +2,8 @@
 
 -export([start/0, start_loop/0]).
 
--define(DEBUG(Text,Parameters),  io:format("--- " ++ Text ++ "~n", Parameters)).
--define(OUTPUT(Text, Parameters), io:format("~c" ++ Text ++ "~n" , [1] ++ Parameters)).
+-define(DEBUG(Text,Parameters),  io:format( [0] ++ "---" ++ Text ++ [0], Parameters )).
+-define(OUTPUT(Text, Parameters), io:format([0] ++ Text ++ [0] , Parameters )).
 
 
 start() ->

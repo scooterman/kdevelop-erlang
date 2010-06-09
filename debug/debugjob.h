@@ -51,6 +51,7 @@ protected:
 private slots:
     void processError(QProcess::ProcessError);
     void processFinished(int, QProcess::ExitStatus);
+    void stdoutReceived(QString data);
     
 private:
     KDevelop::ILaunchConfiguration* m_launchConfig;

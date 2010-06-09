@@ -93,8 +93,9 @@ void DebugSession::startDebugger(KDevelop::ILaunchConfiguration* config)
     m_erlDebugger = new ErlangDebugger();   
     
     connect(m_erlDebugger, SIGNAL(outputCommand(ErlangOutput*)), this, SLOT(handleDebuggerCommand(ErlangOutput*)));
+    connect(m_erlDebugger, SIGNAL(stdoutReceived(QString)), this, SIGNAL(stdoutReceived(QString)));
     
-    m_erlDebugger->start(config->config());
+    m_erlDebugger->start(dir, config->config());
     
     stateChanged(KDevelop::IDebugSession::StartingState);    
 
@@ -194,8 +195,7 @@ void DebugSession::stopDebugger()
 	delete m_erlDebugger;
     }
     
-   emit stateChanged(KDevelop::IDebugSession::EndedState);
-   raiseEvent(program_state_changed);
+   emit stateChanged(KDevelop::IDebugSession::EndedState);   
 }
 
 void DebugSession::restartDebugger()

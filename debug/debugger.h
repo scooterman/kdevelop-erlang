@@ -35,12 +35,13 @@ class ErlangDebugger : public QObject
   Q_OBJECT
 public:
   
-  void start(const KConfigGroup& config);  
+  void start(QString runDir, const KConfigGroup& config);  
   void execute(ErlangCommand* command);
   void stop();
 
 signals:
   void outputCommand(ErlangOutput* ouput);
+  void stdoutReceived(QString data);
   
 protected:
   QString m_erlShellBinary;

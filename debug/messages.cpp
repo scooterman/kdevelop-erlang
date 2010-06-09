@@ -147,41 +147,45 @@ QString BreakCommand::getCommand()
   return QString("{ break, %1, %2 }.").arg(m_module).arg(m_line);
 }
 
-void inner_parse(QString& input, int currentPos, QDomDocument& outputDoc)
+void inner_parse(QString& input, int& currentPos, QDomDocument& document)
 {
-  QDomElement variables = outputDoc.createElement("Variables");
-  
   while (currentPos < input.length())
   {
     if (input[currentPos] == '{')
     {
-      QDomElement curr_var = outputDoc.createElement("variable");
+      QDomElement curr_var = document.createElement("variable");
+      
       input[++currentPos]; // reading (')
+      
       QString var_name;
+      
       while (input[++currentPos] != '\'')
       {
 	var_name += input[currentPos];
       }
-      input[++currentPos]; //reading (,)
+      
+      ++currentPos; //reading (,)     
       
       QString var_value;
-      while (input[++currentPos] != '}')
+      int inner_count = 0;
+      
+      while (input[++currentPos] != '}' || (input[currentPos] == '}' && --inner_count >= 0))
       {
+	if (input[currentPos] == '{')
+	  inner_count++;
+	 
 	var_value += input[currentPos];
-      }            
+      }     
       
       curr_var.setAttribute("name", var_name);
-      curr_var.appendChild(outputDoc.createTextNode(var_value));
-      
-      variables.appendChild(curr_var);
+      curr_var.appendChild(document.createTextNode(var_value));
+      document.appendChild(curr_var);
     }
     else
     {
       currentPos++;
     }
-  }
-  
-  outputDoc.appendChild(variables);
+  } 
 }
 
 QDomDocument& VariableListOutput::getDocument()
@@ -196,9 +200,11 @@ void VariableListOutput::parse()
   values.remove(0,1);
   values.remove(values.length() - 1, 1);
  
+  QDomElement variables = m_document.createElement("Variables");
     
-  inner_parse(values, 0, m_document);
- 
+  int i = 0;
+  inner_parse(values, i, m_document);
+
   kDebug() << m_document.toString();
 }
 

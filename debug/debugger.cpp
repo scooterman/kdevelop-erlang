@@ -27,7 +27,7 @@
 namespace ErlangDebugPlugin
 {
 
-void ErlangDebugger::start(const KConfigGroup& config)
+void ErlangDebugger::start(QString runDir, const KConfigGroup& config)
 {
     KUrl erlangdebuggerUrl = config.readEntry(ErlangDebugPlugin::erlangShellExecPath, KUrl());
     if (erlangdebuggerUrl.isEmpty()) {
@@ -38,7 +38,8 @@ void ErlangDebugger::start(const KConfigGroup& config)
     }
 
     m_erlShellProcess = new KProcess(this);
-
+    m_erlShellProcess->setWorkingDirectory(runDir);
+    
     m_erlShellProcess->setOutputChannelMode( KProcess::SeparateChannels );
     connect(m_erlShellProcess, SIGNAL(readyReadStandardOutput()),
             SLOT(readyReadStandardOutput()));
@@ -120,17 +121,47 @@ void ErlangDebugger::readyReadStandardOutput()
 {
     m_erlShellProcess->setReadChannel(QProcess::StandardOutput);
     m_buffer += m_erlShellProcess->readAll();
-    
+    int i;
     for (;;)
     {
-        int i = m_buffer.indexOf('\n');
-        if (i == -1)
-            break;
-
-        QByteArray reply(m_buffer.left(i));
-        m_buffer = m_buffer.mid(i+1);
-
-        processLine(reply);
+        i = m_buffer.indexOf('\0');
+        if (i == -1 || i && i > 0)
+	{
+	  if (m_buffer.size())
+	  {
+	    kDebug() << "Received standard output from processes. Signaling:" << m_buffer;
+	    if (i > 0)
+	    {
+	      emit stdoutReceived(m_buffer.left(i).trimmed());
+	      m_buffer = m_buffer.mid(i);
+	    }
+	    else
+	    {
+	      emit stdoutReceived(QString(m_buffer).trimmed());
+	      m_buffer.clear();
+	    }
+	  }
+	  
+	  if (i == -1)
+	    break;	  
+	}
+	else
+	{
+	  if ((i = m_buffer.indexOf('\0', i + 1)) >= 0)
+	  {
+	    QByteArray reply(m_buffer.left(i));  
+	    m_buffer = m_buffer.mid(i + 1);
+	    
+	    reply.remove(0,1);
+	    reply.remove(i - 1, 1);
+	    
+	    processLine(reply);
+	  }
+	  else
+	  {
+	    break;
+	  }
+	}
     }
 }
 
@@ -151,11 +182,9 @@ void ErlangDebugger::processLine(QByteArray data)
   {
     kDebug() << "Debug information from erlang debugger process: " << data;
   }
-  else if (data.length() > 1 && data[0] == '\001')
+  else
   { 
-    kDebug() << "Received command: " << data;
-    
-    data.remove(0,1);
+    kDebug() << "Received command: " << data;   
     QString command(data);
     
     QStringList items = command.split("|");
@@ -187,7 +216,7 @@ void ErlangDebugger::processLine(QByteArray data)
     }
     
     delete output;    
-  }
+  }  
 }
 
 void ErlangDebugger::stop()
