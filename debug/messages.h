@@ -83,7 +83,7 @@ class VariableListOutput : public ErlangOutput
 {      
   public:
     VariableListOutput(const QStringList& rawData) 
-    : ErlangOutput(rawData, VariableListOutputType) 
+    : ErlangOutput(rawData, VariableListOutputType)
     { 
     } 
     void parse();

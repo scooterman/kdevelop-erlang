@@ -62,9 +62,20 @@ public:
     virtual void execute(ErlangOutput &output)
     {
 	VariableListOutput* v_output = static_cast<VariableListOutput*>(&output);
-	if (m_variable->handleProperty(*v_output))	
+	
+	QDomDocument doc = v_output->getDocument();	
+	QDomNodeList lst = doc.firstChild().childNodes();
+	
+	kDebug() << m_variable->expression();
+	for (int i = 0; i < lst.size(); ++i)
 	{
-	  QMetaObject::invokeMethod(m_callback, m_callbackMethod, Q_ARG(bool, true));
+	  QDomNode node = lst.at(i);
+	  if (node.attributes().namedItem("name").nodeValue() == m_variable->expression() &&
+	      m_variable->handleProperty(node))
+	  {
+	    QMetaObject::invokeMethod(m_callback, m_callbackMethod, Q_ARG(bool, true));
+	    break;
+	  }
 	}
     }
     
@@ -89,24 +100,62 @@ void Variable::fetchMoreChildren()
 {
 }
 
-bool Variable::handleProperty(VariableListOutput &variableList)
+bool Variable::handleProperty(QDomNode variable)
 {
-    setInScope(true); 
+    setInScope(true);            
+
+    QDomNodeList lst = variable.childNodes();
+    QString var_name;
     
-    QDomDocument& document = variableList.getDocument();
-    QDomNodeList lst = document.elementsByTagName("variable");
-       
     for (int i = 0; i < lst.size(); ++i)
     {
-      QDomNode nd = lst.at(i);
-      if (nd.attributes().namedItem("name").nodeValue() == expression())
+      QDomNode node = lst.item(i);
+      QString node_name = node.nodeName();
+      
+      if (node_name == "variable" || node_name == "item")
       {
-	setValue(nd.firstChild().nodeValue());
-	return true;
+	if (node.attributes().contains("name"))
+	  var_name = node.attributes().namedItem("name").nodeValue();
+	  
+	if (var_name.size())
+	{
+	  Variable* v = new Variable(model(), this, var_name);
+	  appendChild(v, false);      
+	  v->handleProperty(node);
+	}
+	else
+	{
+	  QString kind = node.attributes().namedItem("kind").nodeValue();
+      	  
+	  if (node_name == "variable")
+	  {
+	    handleProperty(node);
+	    setValue(node.attributes().namedItem("raw_value").nodeValue());
+	  }
+	  else
+	  {
+	    Variable* v = new Variable(model(), this, kind == "list" ? "[]" : "{}");
+	    v->setValue(node.attributes().namedItem("raw_value").nodeValue());
+	    appendChild(v, false);
+	    v->handleProperty(node);
+	  }
+	}
       }
-    }	  
-    
-    return false;
+      else if (node_name == "value")
+      {
+	if (variable.attributes().contains("kind"))
+	{
+	  Variable* v = new Variable(model(), this, node.firstChild().nodeValue());
+	  appendChild(v, false);
+	}
+	else if (variable.hasChildNodes())
+	{
+	  setValue(node.firstChild().nodeValue());
+	}
+      }
+    }
+           
+    return true;
 }
 
 QString Variable::fullName() const

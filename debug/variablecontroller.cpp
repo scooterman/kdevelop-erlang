@@ -51,21 +51,17 @@ void VariableController::handleLocals(VariableListOutput* variableList)
     
   QStringList updatable;
   
-  QDomNodeList lst =  document.elementsByTagName("variable");
+  QDomNodeList lst =  document.firstChildElement().elementsByTagName("variable");
   
   for (int i = 0; i < lst.size(); ++i)
   {
     updatable << lst.at(i).attributes().namedItem("name").nodeValue();    
-  }  
+    QList<KDevelop::Variable*> locals = KDevelop::ICore::self()->debugController()->variableCollection()->locals()->updateLocals(updatable);  
   
-  QList<KDevelop::Variable*> locals = KDevelop::ICore::self()->debugController()->variableCollection()->locals()->updateLocals(updatable);  
-  
-  foreach(KDevelop::Variable* variable, locals)
-  {
-    static_cast<Variable*>(variable)->handleProperty(*variableList);
-  } 
-  
-  document.childNodes();
+    Q_ASSERT(locals.size() == 1);
+    static_cast<Variable*>(locals.at(0))->handleProperty(lst.at(i));
+    updatable.clear();
+  }
 }
 
 DebugSession *VariableController::debugSession() const

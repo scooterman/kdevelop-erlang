@@ -43,7 +43,7 @@ public: // Variable overrides
     virtual void attachMaybe(QObject *callback = 0, const char *callbackMethod = 0);
     virtual void fetchMoreChildren();
     QString fullName() const;
-    bool handleProperty(ErlangDebugPlugin::VariableListOutput& variableList);
+    bool handleProperty(QDomNode variable);
     
 private: // Internal
     friend class VariableListCallback;        

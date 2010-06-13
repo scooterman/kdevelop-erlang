@@ -147,43 +147,75 @@ QString BreakCommand::getCommand()
   return QString("{ break, %1, %2 }.").arg(m_module).arg(m_line);
 }
 
-void inner_parse(QString& input, int& currentPos, QDomDocument& document)
+void inner_parse(QString& input, int& currentPos, QDomElement& element, QDomDocument& document, int deepness)
 {
+  QString var;
+  QStringList raw_items;
+  
   while (currentPos < input.length())
   {
-    if (input[currentPos] == '{')
+    if (input[currentPos] == '{' || input[currentPos] == '[')
     {
-      QDomElement curr_var = document.createElement("variable");
+      QDomElement curr_var = document.createElement(deepness > 0 ? "item" : "variable");   
       
-      input[++currentPos]; // reading (')
+      if (input[currentPos] == '[')
+	  curr_var.setAttribute("kind", "list");
+      else if (deepness >= 0)
+	  curr_var.setAttribute("kind", "tuple");
       
-      QString var_name;
+      currentPos++;      
       
-      while (input[++currentPos] != '\'')
-      {
-	var_name += input[currentPos];
-      }
+      inner_parse(input, currentPos, curr_var, document, deepness + 1);
+      element.appendChild(curr_var);
       
-      ++currentPos; //reading (,)     
+      currentPos++;
       
-      QString var_value;
-      int inner_count = 0;
-      
-      while (input[++currentPos] != '}' || (input[currentPos] == '}' && --inner_count >= 0))
-      {
-	if (input[currentPos] == '{')
-	  inner_count++;
-	 
-	var_value += input[currentPos];
-      }     
-      
-      curr_var.setAttribute("name", var_name);
-      curr_var.appendChild(document.createTextNode(var_value));
-      document.appendChild(curr_var);
+      if (deepness <= 0)
+	return;         
     }
     else
     {
-      currentPos++;
+      if (input[currentPos] == '}' || input[currentPos] == ']')
+      {
+	if (var.size())
+	{
+	  QDomElement item = document.createElement("value");
+	  item.appendChild(document.createTextNode(var));
+	  element.appendChild(item);
+	  
+	  raw_items << var;
+	}
+	
+	element.setAttribute("raw_value", (input[currentPos] == '}' ? '{' : '[') +  raw_items.join(",") + input[currentPos]);
+	
+	if (input[currentPos + 1] == ',') 
+	  currentPos++;
+	
+	return;
+      }
+      else if (input[currentPos] == ',')
+      {
+	QDomElement item;
+	if (element.childNodes().count() == 0 && !element.hasAttribute("kind"))
+	{
+	  var = var.remove('\'');
+	  element.setAttribute("name", var);	  
+	}
+	else
+	{
+	  item = document.createElement("value");
+	  item.appendChild(document.createTextNode(var));	
+	  element.appendChild(item);
+	}
+	
+	raw_items << var;
+	var.clear();
+	
+	currentPos++;
+	continue;
+      }
+      
+      var += input[currentPos++];      
     }
   } 
 }
@@ -200,12 +232,19 @@ void VariableListOutput::parse()
   values.remove(0,1);
   values.remove(values.length() - 1, 1);
  
-  QDomElement variables = m_document.createElement("Variables");
-    
+  QDomElement variables = m_document.createElement("variables");
+  
   int i = 0;
-  inner_parse(values, i, m_document);
-
-  kDebug() << m_document.toString();
+  
+  while (i < values.length())
+  {
+    inner_parse(values, i, variables, m_document, -1);
+    i++;
+  }
+  
+  m_document.appendChild(variables);
+  
+  kDebug() << m_document.toString(2);
 }
 
 FinishCommand::FinishCommand(QString meta): 
