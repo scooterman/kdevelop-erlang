@@ -190,7 +190,8 @@ namespace KDevelop
             | file_declaration=fileDeclaration
             | define_declaration=defineDeclaration
             | behaviour_declaration=behaviourDeclaration
-            | attribute_declaration=attributeDeclaration )
+            | attribute_declaration=attributeDeclaration 
+            | include_declaration=includeDeclaration )
 -> attribute;;
 
     MODULE_DIRECTIVE LPAREN module_name=ATOM_LITERAL RPAREN
@@ -199,7 +200,8 @@ namespace KDevelop
     BEHAVIOUR_DIRECTIVE LPAREN behaviour=ATOM_LITERAL RPAREN
 -> behaviourDeclaration;;
 
-    EXPORT_DIRECTIVE LPAREN LBRACKET #exported_functions=functionSlashArity @ COMMA RBRACKET RPAREN
+
+    EXPORT_DIRECTIVE LPAREN LBRACKET (#exported_functions=functionSlashArity @ COMMA | 0) RBRACKET RPAREN
 -> exportDeclaration;;
 
     function_name=ATOM_LITERAL FORWARD_SLASH function_arity=INTEGER_LITERAL
@@ -219,6 +221,9 @@ namespace KDevelop
 
     ATOM_LITERAL LPAREN name=STRING_LITERAL COMMA line=INTEGER_LITERAL RPAREN
 -> attributeDeclaration;;
+
+    INCLUDE_DIRECTIVE LPAREN STRING_LITERAL RPAREN
+-> includeDeclaration;;
 
       SPEC 
     | literal=ATOM_LITERAL
@@ -314,7 +319,7 @@ namespace KDevelop
     argument_list=argumentList
 -> clauseArgs;;
 
-    WHEN guard=guard | 0
+    WHEN (#guards=guard @ SEMICOLON) | 0
 -> clauseGuard;;
 
     LEADS_TO exprs=exprs
@@ -357,8 +362,7 @@ namespace KDevelop
 %> expr [:
    bool preAllowed = true;
    bool compAllowed = true;
-:] ;;
-
+:];;
 
    PLUS
  | MINUS
@@ -399,7 +403,7 @@ namespace KDevelop
     | QUESTION define_name=VARIABLE (define_function=argumentList | 0)
 -> exprMax;;
 
-    literal=VARIABLE
+    literal=VARIABLE | UNDERLINE
 -> variable;;
 
       RBRACKET
@@ -522,11 +526,11 @@ namespace KDevelop
     #e=expr @ COMMA
 -> exprs;;
 
-   expr=exprs (SEMICOLON guard=guard)
+   #guard=exprs
 -> guard;;
 
       CHAR_LITERAL
-    | INTEGER_LITERAL
+    | (PLUS|MINUS|0) INTEGER_LITERAL
     | FLOAT_LITERAL
     | ATOM_LITERAL
     | #strings=STRING_LITERAL

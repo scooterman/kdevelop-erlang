@@ -74,13 +74,27 @@ bool Lexer::processCharLiteral(QChar* it)
     return it->unicode() != '\n';
 }
 
-bool Lexer::isValidNumeric(QChar* it, bool isExponential, bool hasRadix, bool hasPoint)
+bool Lexer::isValidNumeric(QChar* it, bool isExponential, bool hasRadix, bool hasPoint, bool& hasUnusable)
 {
+    unsigned int nextValidChar = 1;
+    
     bool nextIsValid = m_curpos + 1 < m_contentSize;
+    
+    while (nextIsValid && (    
+			       (it + nextValidChar)->isSpace() 
+			    || (it + nextValidChar)->unicode() == '\t' 
+			    || (it + nextValidChar)->unicode() == '\n'))
+    {
+      nextValidChar++;
+      nextIsValid = nextValidChar < m_contentSize;
+      hasUnusable = true;
+    }
+    
     return it->isDigit()
            || (it->unicode() == '.' && nextIsValid && (it + 1)->isDigit())
            || (it->unicode() == '#' && nextIsValid && (it + 1)->isDigit())
-           || (nextIsValid && isExponential && hasPoint && (it->unicode() == '+' || it->unicode() == '-') && (it + 1)->isDigit())
+           || ((it->unicode() == '-' || it->unicode() == '+') && nextIsValid && (it + nextValidChar)->isDigit())
+           || (nextIsValid && isExponential && hasPoint && (it->unicode() == '+' || it->unicode() == '-') && (it + nextValidChar)->isDigit())
            || (hasRadix && !hasPoint && (it->toLower() == 'a' || it->toLower() == 'b' ||
                                          it->toLower() == 'c' || it->toLower() == 'd' ||
                                          it->toLower() == 'e' || it->toLower() == 'f'));
@@ -116,48 +130,43 @@ int Lexer::nextTokenKind()
     }
     else if (it->isDigit())
     {
-        QString num;
-
-        bool hasPoint = false;
-        bool hasRadix = false;
-        bool isExponential = false;
-
-        while (m_curpos < m_contentSize && isValidNumeric(it, isExponential, hasRadix, hasPoint))
+	static QRegExp regex("\\d+\\.\\d+|\\d+\\.\\d+|\\d+\\.\\d+e-?\\d+|\\d+\\.\\d+e-?\\d+|[\\dABCDEF]+#\\d{1,2}|\\d+");
+	
+	if ( regex.indexIn(m_content, m_curpos) != -1)
+	{
+	  kDebug() << "Matched: " << regex.cap();
+	  
+	  m_curpos += regex.matchedLength() - 1;
+	  token = Parser::Token_INTEGER_LITERAL;
+	}
+    }
+    else if (it->unicode() == '-')
+    {
+	  if ((it + 1)->unicode() == '>')
+	  {
+	      m_curpos++;
+	      token = Parser::Token_LEADS_TO;
+	  }
+	  else  if ((it + 1)->unicode() == '-')
+	  {
+	      m_curpos++;
+	      token = Parser::Token_LIST_DIFFERENCE;
+	  }
+	  else
+	  {
+	      token = Parser::Token_MINUS;
+	  }
+    }    
+    else if (it->unicode() == '+')
+    {
+	if ((it + 1)->unicode() == '+')
         {
-            if (it->unicode() == '.' && hasPoint)
-            {
-                m_haltCompiler = true;
-            }
-
-            if (it->unicode() == '.' && (it + 1)->isDigit())
-            {
-                hasPoint = true;
-            }
-            if (it->unicode() == '#'  && (it + 1)->isDigit())
-            {
-                hasRadix = true;
-            }
-            if (!hasRadix && hasPoint && it->toLower() == 'e')
-            {
-                isExponential = true;
-            }
-
-            num.append(*it);
-            it++;
-
-            if (m_curpos < m_contentSize && isValidNumeric(it, isExponential, hasRadix, hasPoint))
-            {
-                m_curpos++;
-            }
-        }
-
-        if (hasPoint)
-        {
-            token = Parser::Token_FLOAT_LITERAL;
+            m_curpos++;
+            token = Parser::Token_LIST_ADDITION;
         }
         else
         {
-            token = Parser::Token_INTEGER_LITERAL;
+            token = Parser::Token_PLUS;
         }
     }
     else if (it->unicode() == '$' && processCharLiteral(it + 1))
@@ -282,35 +291,6 @@ int Lexer::nextTokenKind()
         else
         {
             token = Parser::Token_PIPE;
-        }
-    }
-    else if (it->unicode() == '+')
-    {
-        if ((it + 1)->unicode() == '+')
-        {
-            m_curpos++;
-            token = Parser::Token_LIST_ADDITION;
-        }
-        else
-        {
-            token = Parser::Token_PLUS;
-        }
-    }
-    else if (it->unicode() == '-')
-    {
-        if ((it + 1)->unicode() == '>')
-        {
-            m_curpos++;
-            token = Parser::Token_LEADS_TO;
-        }
-        else  if ((it + 1)->unicode() == '-')
-        {
-            m_curpos++;
-            token = Parser::Token_LIST_DIFFERENCE;
-        }
-        else
-        {
-            token = Parser::Token_MINUS;
         }
     }
     else if (it->unicode() == ':')

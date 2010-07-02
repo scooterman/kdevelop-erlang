@@ -100,5 +100,4 @@ target_link_libraries(duchaintest
 #     ${QT_QTTEST_LIBRARY}
 # )
 
-
 add_subdirectory(debug)

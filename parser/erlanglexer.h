@@ -52,7 +52,7 @@ public:
     int nextTokenKind();
     qint64 tokenBegin() const;
     qint64 tokenEnd() const;
-    bool isValidNumeric(QChar* arg1, bool arg2, bool arg3, bool arg4);
+    bool isValidNumeric(QChar* it, bool isExponential, bool hasRadix, bool hasPoint, bool& hasSpaces);
 
 private:
     QString m_content;

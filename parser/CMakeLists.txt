@@ -6,7 +6,7 @@ set(parser_STAT_SRCS
     parsesession.cpp
     )
 
-kdevpgqt_generate(_kdevpgList erlang NAMESPACE erlang TOKEN_TEXT BEAUTIFUL_CODE
+kdevpgqt_generate(_kdevpgList erlang NAMESPACE erlang TOKEN_TEXT
     "${erlang_SOURCE_DIR}/parser/erlang.g"
     "${erlang_SOURCE_DIR}/parser/erlanglexer.h"
 )

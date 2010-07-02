@@ -14,13 +14,14 @@ public:
     TestParser();
 
 private Q_SLOTS:   
-    void functionDeclaration();
+    /*void functionDeclaration();
     void functionClausesDeclaration();
-    void list();
-    void testNumeric();
+    void list();    
     void testVariable();
     void testRecord();
-    void testDefine();
+    void testDefine();*/
+    void testNumeric();
+    void textExport();
 };
 
 }

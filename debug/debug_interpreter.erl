@@ -90,7 +90,7 @@ handle({int, {new_process, { Process , FunctionInfo , Status , Info} } }) ->
 handle({ int, { new_status, Process ,break, { Module, Line } } }) ->
   ?DEBUG("Trapped a break on module [~w] and line [~w]", [Module, Line ]),
   {ok, Meta} = dbg_iserver:call({get_meta, Process}),
-  ?OUTPUT("variables_list|~w", [int:meta(Meta, bindings, nostack)]),    
+  ?OUTPUT("variables_list|~w", [int:meta(Meta, bindings, nostack)]),
   ?OUTPUT("break|~s|~w|~w",[int:file(Module), Line, Process]);
 
 handle({ int, { new_status, Process , Action, Info } }) ->
@@ -98,7 +98,7 @@ handle({ int, { new_status, Process , Action, Info } }) ->
   ?OUTPUT("process_status_update|~w|~w|~w",[Process, Action, Info]);
 
 handle(Unknown) ->
-  ?DEBUG("received: ~w~n", [Unknown]).
+  ?DEBUG("received: ~w", [Unknown]).
 
 %%% End message handling
 

@@ -147,15 +147,17 @@ QString BreakCommand::getCommand()
   return QString("{ break, %1, %2 }.").arg(m_module).arg(m_line);
 }
 
-void inner_parse(QString& input, int& currentPos, QDomElement& element, QDomDocument& document, int deepness)
+void inner_parse(QString& input, int& currentPos, QDomElement& element, QDomDocument& document, int deepness, QString& raw_data)
 {
   QString var;
-  QStringList raw_items;
+  int start_pos = currentPos;
   
   while (currentPos < input.length())
-  {
+  {    
     if (input[currentPos] == '{' || input[currentPos] == '[')
     {
+      raw_data += input[currentPos];
+      
       QDomElement curr_var = document.createElement(deepness > 0 ? "item" : "variable");   
       
       if (input[currentPos] == '[')
@@ -165,7 +167,7 @@ void inner_parse(QString& input, int& currentPos, QDomElement& element, QDomDocu
       
       currentPos++;      
       
-      inner_parse(input, currentPos, curr_var, document, deepness + 1);
+      inner_parse(input, currentPos, curr_var, document, deepness + 1, raw_data);
       element.appendChild(curr_var);
       
       currentPos++;
@@ -181,14 +183,13 @@ void inner_parse(QString& input, int& currentPos, QDomElement& element, QDomDocu
 	{
 	  QDomElement item = document.createElement("value");
 	  item.appendChild(document.createTextNode(var));
-	  element.appendChild(item);
-	  
-	  raw_items << var;
+	  element.appendChild(item);  
 	}
 	
-	element.setAttribute("raw_value", (input[currentPos] == '}' ? '{' : '[') +  raw_items.join(",") + input[currentPos]);
-	
-	if (input[currentPos + 1] == ',') 
+	QString a = input.mid(start_pos - 1, currentPos - start_pos + 2);	
+	element.setAttribute("raw_value", a);
+		
+	if (input[currentPos + 1] == ',')
 	  currentPos++;
 	
 	return;
@@ -199,7 +200,7 @@ void inner_parse(QString& input, int& currentPos, QDomElement& element, QDomDocu
 	if (element.childNodes().count() == 0 && !element.hasAttribute("kind"))
 	{
 	  var = var.remove('\'');
-	  element.setAttribute("name", var);	  
+	  element.setAttribute("name", var);
 	}
 	else
 	{
@@ -208,7 +209,6 @@ void inner_parse(QString& input, int& currentPos, QDomElement& element, QDomDocu
 	  element.appendChild(item);
 	}
 	
-	raw_items << var;
 	var.clear();
 	
 	currentPos++;
@@ -238,7 +238,8 @@ void VariableListOutput::parse()
   
   while (i < values.length())
   {
-    inner_parse(values, i, variables, m_document, -1);
+    QString raw_items;
+    inner_parse(values, i, variables, m_document, -1, raw_items);
     i++;
   }
   
