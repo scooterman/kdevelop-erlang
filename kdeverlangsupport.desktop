@@ -24,6 +24,7 @@ Name[sv]=KDevelop Erlang-stöd
 Name[uk]=KDevErlangSupport
 Name[x-test]=xxKDevErlangSupportxx
 GenericName=Erlang Support
+GenericName[de]=Unterstützung für Erlang
 GenericName[en_GB]=Erlang Support
 GenericName[es]=Implementación de Erlang
 GenericName[fr]=Prise en charge de Erlang
