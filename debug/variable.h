@@ -48,6 +48,10 @@ public: // Variable overrides
 private: // Internal
     friend class VariableListCallback;        
     QString m_fullName;
+    
+    QObject* m_callback;
+    const char* m_callbackMethod;
+    unsigned int m_iter;
 };
 }
 

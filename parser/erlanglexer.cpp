@@ -130,7 +130,7 @@ int Lexer::nextTokenKind()
     }
     else if (it->isDigit())
     {
-	static QRegExp regex("\\d+\\.\\d+|\\d+\\.\\d+|\\d+\\.\\d+e-?\\d+|\\d+\\.\\d+e-?\\d+|[\\dABCDEF]+#\\d{1,2}|\\d+");
+	QRegExp regex("\\d+\\.\\d+|\\d+\\.\\d+|\\d+\\.\\d+e-?\\d+|\\d+\\.\\d+e-?\\d+|[\\dABCDEF]+#\\d{1,2}|\\d+");
 	
 	if ( regex.indexIn(m_content, m_curpos) != -1)
 	{

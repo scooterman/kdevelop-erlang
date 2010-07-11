@@ -57,7 +57,11 @@ process_user_input({ var_list , Meta }) ->
   META = list_to_pid(Meta),
   ?DEBUG("Trying to get variable list for MetaProcess [~w]", [META]),  
   %?DEBUG("teste: [~w]", [int:get_binding('X',int:meta(META, bindings, nostack))]),  
-  ?OUTPUT("variables_list|~w", [int:meta(META, bindings, nostack)]);
+  VariablesList = int:meta(META, bindings, nostack),
+  ?DEBUG("Variable list is : ~w",[VariablesList]),
+  ParsedData = start_parsing(VariablesList),
+  ?DEBUG("Parsed data is : ~s", [ParsedData]),
+  ?OUTPUT("variables_list|~s", [ParsedData]);
 
 process_user_input({ break_remove , Module , Line }) ->
   ?DEBUG("Trying remove a breakpoint for module [~w] on line [~p] ", [Module, Line] ),
@@ -89,8 +93,13 @@ handle({int, {new_process, { Process , FunctionInfo , Status , Info} } }) ->
 
 handle({ int, { new_status, Process ,break, { Module, Line } } }) ->
   ?DEBUG("Trapped a break on module [~w] and line [~w]", [Module, Line ]),
-  {ok, Meta} = dbg_iserver:call({get_meta, Process}),
-  ?OUTPUT("variables_list|~w", [int:meta(Meta, bindings, nostack)]),
+  {ok, Meta} = dbg_iserver:call({get_meta, Process}),  
+%   TODO: check problems with variable controller
+%   VariablesList = int:meta(Meta, bindings, nostack),
+%   ?DEBUG("Variable list is : ~w", [VariablesList]),
+%   ParsedData = start_parsing(VariablesList),
+%   ?DEBUG("Parsed data is : ~s", [ParsedData]),
+%   ?OUTPUT("variables_list|~s", [ParsedData]),
   ?OUTPUT("break|~s|~w|~w",[int:file(Module), Line, Process]);
 
 handle({ int, { new_status, Process , Action, Info } }) ->
@@ -99,6 +108,37 @@ handle({ int, { new_status, Process , Action, Info } }) ->
 
 handle(Unknown) ->
   ?DEBUG("received: ~w", [Unknown]).
+
+
+%%%%%%%%%%% VARIABLE LIST TO XML CONVERSION %%%%%%%%%%%%%%%%%%
+
+start_parsing(Data) ->
+  io_lib:format("<variables>~s</variables>" , [ parse(Data) ]).
+
+parse([]) -> "";
+
+parse([H|T]) ->
+  parse(H) ++ parse(T);
+
+parse({ VariableName , Variable }) ->
+  io_lib:format("<variable name=\"~s\"><raw_value><![CDATA[~w]]></raw_value>~s</variable>",[erlang:atom_to_list(VariableName), Variable, parse_variable(Variable)]).
+
+parse_variable(RawValue) when is_list(RawValue) ->
+  io_lib:format("<item kind=\"list\"><raw_value><![CDATA[~w]]></raw_value>~s</item>",[RawValue, parse_list_items(RawValue)]);
+
+parse_variable( RawValue ) when is_tuple(RawValue) ->
+  io_lib:format("<item kind=\"tuple\"><raw_value><![CDATA[~w]]></raw_value>~s</item>",[RawValue, parse_list_items(erlang:tuple_to_list(RawValue))]);
+
+parse_variable( Other )->
+   io_lib:format("<value><![CDATA[~w]]></value>", [Other]).
+
+parse_list_items([]) -> "";
+
+parse_list_items([ H | T ]) ->
+  parse_variable(H) ++ parse_list_items(T).
+
+%%%%%%%%%%% END VARIABLE LIST TO XML CONVERSION %%%%%%%%%%%%%%%%%%
+
 
 %%% End message handling
 

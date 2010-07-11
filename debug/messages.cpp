@@ -20,6 +20,7 @@
 
 #include "messages.h"
 #include "kdebug.h"
+#include <QXmlReader>
 
 namespace ErlangDebugPlugin
 {
@@ -147,78 +148,6 @@ QString BreakCommand::getCommand()
   return QString("{ break, %1, %2 }.").arg(m_module).arg(m_line);
 }
 
-void inner_parse(QString& input, int& currentPos, QDomElement& element, QDomDocument& document, int deepness, QString& raw_data)
-{
-  QString var;
-  int start_pos = currentPos;
-  
-  while (currentPos < input.length())
-  {    
-    if (input[currentPos] == '{' || input[currentPos] == '[')
-    {
-      raw_data += input[currentPos];
-      
-      QDomElement curr_var = document.createElement(deepness > 0 ? "item" : "variable");   
-      
-      if (input[currentPos] == '[')
-	  curr_var.setAttribute("kind", "list");
-      else if (deepness >= 0)
-	  curr_var.setAttribute("kind", "tuple");
-      
-      currentPos++;      
-      
-      inner_parse(input, currentPos, curr_var, document, deepness + 1, raw_data);
-      element.appendChild(curr_var);
-      
-      currentPos++;
-      
-      if (deepness <= 0)
-	return;         
-    }
-    else
-    {
-      if (input[currentPos] == '}' || input[currentPos] == ']')
-      {
-	if (var.size())
-	{
-	  QDomElement item = document.createElement("value");
-	  item.appendChild(document.createTextNode(var));
-	  element.appendChild(item);  
-	}
-	
-	QString a = input.mid(start_pos - 1, currentPos - start_pos + 2);	
-	element.setAttribute("raw_value", a);
-		
-	if (input[currentPos + 1] == ',')
-	  currentPos++;
-	
-	return;
-      }
-      else if (input[currentPos] == ',')
-      {
-	QDomElement item;
-	if (element.childNodes().count() == 0 && !element.hasAttribute("kind"))
-	{
-	  var = var.remove('\'');
-	  element.setAttribute("name", var);
-	}
-	else
-	{
-	  item = document.createElement("value");
-	  item.appendChild(document.createTextNode(var));	
-	  element.appendChild(item);
-	}
-	
-	var.clear();
-	
-	currentPos++;
-	continue;
-      }
-      
-      var += input[currentPos++];      
-    }
-  } 
-}
 
 QDomDocument& VariableListOutput::getDocument()
 {
@@ -227,25 +156,16 @@ QDomDocument& VariableListOutput::getDocument()
 
 void VariableListOutput::parse()
 {
-  QString values = m_rawData[1];
+  QString errorMsg;
+  int errorLine;
+  int errorColumn;
   
-  values.remove(0,1);
-  values.remove(values.length() - 1, 1);
- 
-  QDomElement variables = m_document.createElement("variables");
-  
-  int i = 0;
-  
-  while (i < values.length())
+  if (!m_document.setContent(m_rawData[1], &errorMsg, &errorLine, &errorColumn))
   {
-    QString raw_items;
-    inner_parse(values, i, variables, m_document, -1, raw_items);
-    i++;
+      kError() << "Error parsing variables list on line " << errorLine << " and column " << errorColumn << ": " << errorMsg;
   }
   
-  m_document.appendChild(variables);
-  
-  kDebug() << m_document.toString(2);
+  //kDebug() << m_document.toString(2);  
 }
 
 FinishCommand::FinishCommand(QString meta): 

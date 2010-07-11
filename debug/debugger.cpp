@@ -54,8 +54,8 @@ void ErlangDebugger::start(QString runDir, const KConfigGroup& config)
     connect(m_erlShellProcess, SIGNAL(error(QProcess::ProcessError)),
             SLOT(processErrored(QProcess::ProcessError)));
 
-    QString debuggerInterpreterBeamPath = KStandardDirs::locateLocal("data", "kdevelop/debug_interpreter.beam");
-    QString debuggerInterpreterFolder = KStandardDirs::locateLocal("data", "kdevelop/");
+    QString debuggerInterpreterBeamPath = KStandardDirs::locateLocal("data", "kdeverlangsupport/debug_interpreter.beam");
+    QString debuggerInterpreterFolder = KStandardDirs::locateLocal("data", "kdeverlangsupport/");
     Q_ASSERT(KStandardDirs::exists(debuggerInterpreterFolder));
 
     //if we dont have the precompiled beam, invoke erlc to build it

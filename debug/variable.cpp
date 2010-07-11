@@ -29,22 +29,23 @@
 #include "messages.h"
 #include "debugsession.h"
 
-namespace ErlangDebugPlugin {
+namespace ErlangDebugPlugin
+{
 
 static bool hasStartedSession()
 {
     KDevelop::IDebugSession *session = KDevelop::ICore::self()->debugController()->currentSession();
-    if (!session)
+    if ( !session )
         return false;
 
     KDevelop::IDebugSession::DebuggerState s = session->state();
     return s != KDevelop::IDebugSession::NotStartedState
-        && s != KDevelop::IDebugSession::EndedState;
+           && s != KDevelop::IDebugSession::EndedState;
 }
 
-Variable::Variable(KDevelop::TreeModel* model, KDevelop::TreeItem* parent,
-            const QString& expression, const QString& display)
-: KDevelop::Variable(model, parent, expression, display)
+Variable::Variable ( KDevelop::TreeModel* model, KDevelop::TreeItem* parent,
+                     const QString& expression, const QString& display )
+        : KDevelop::Variable ( model, parent, expression, display )
 {
 }
 
@@ -55,106 +56,88 @@ Variable::~Variable()
 class VariableListCallback : public DebugCallbackBase
 {
 public:
-    VariableListCallback(Variable *variable, QObject *callback, const char *callbackMethod)
-    : m_variable(variable), m_callback(callback), m_callbackMethod(callbackMethod)
-    {}
+    VariableListCallback ( Variable *variable, QObject *callback, const char *callbackMethod )
+            : m_variable ( variable ), m_callback ( callback ), m_callbackMethod ( callbackMethod ) {}
 
-    virtual void execute(ErlangOutput &output)
+    virtual void execute ( ErlangOutput &output )
     {
-	VariableListOutput* v_output = static_cast<VariableListOutput*>(&output);
-	
-	QDomDocument doc = v_output->getDocument();	
-	QDomNodeList lst = doc.firstChild().childNodes();
-	
-	kDebug() << m_variable->expression();
-	for (int i = 0; i < lst.size(); ++i)
-	{
-	  QDomNode node = lst.at(i);
-	  if (node.attributes().namedItem("name").nodeValue() == m_variable->expression() &&
-	      m_variable->handleProperty(node))
-	  {
-	    QMetaObject::invokeMethod(m_callback, m_callbackMethod, Q_ARG(bool, true));
-	    break;
-	  }
-	}
+        if ( !m_variable )
+            return;
+
+        VariableListOutput* v_output = static_cast<VariableListOutput*> ( &output );
+
+        QDomDocument doc = v_output->getDocument();
+        QDomNodeList lst = doc.firstChild().childNodes();
+
+
+        for ( int i = 0; i < lst.size(); ++i )
+        {
+            QDomNode node = lst.at ( i );
+            if ( node.attributes().namedItem ( "name" ).nodeValue() == m_variable->expression() &&
+                    m_variable->handleProperty ( node ) )
+            {
+                QMetaObject::invokeMethod ( m_callback, m_callbackMethod, Q_ARG ( bool, true ) );
+                break;
+            }
+        }
     }
-    
+
 private:
     QPointer<Variable> m_variable;
     QObject *m_callback;
     const char *m_callbackMethod;
 };
 
-void Variable::attachMaybe(QObject *callback, const char *callbackMethod)
+void Variable::attachMaybe ( QObject *callback, const char *callbackMethod )
 {
-    if (hasStartedSession())
+    if ( hasStartedSession() )
     {
-        KDevelop::IDebugSession* is = KDevelop::ICore::self()->debugController()->currentSession();
-        DebugSession* s = static_cast<DebugSession*>(is);
-	s->requestVariables(new VariableListCallback(this, callback, callbackMethod));
+      KDevelop::IDebugSession* is = KDevelop::ICore::self()->debugController()->currentSession();
+      DebugSession* s = static_cast<DebugSession*>(is);
+      s->requestVariables(new VariableListCallback(this, callback, callbackMethod));
     }
-    
 }
 
 void Variable::fetchMoreChildren()
 {
 }
 
-bool Variable::handleProperty(QDomNode variable)
+bool Variable::handleProperty ( QDomNode variable )
 {
-    setInScope(true);            
+    setInScope ( true );
 
     QDomNodeList lst = variable.childNodes();
     QString var_name;
     
-    for (int i = 0; i < lst.size(); ++i)
+    for ( int i = 0; i < lst.size(); ++i )
     {
-      QDomNode node = lst.item(i);
-      QString node_name = node.nodeName();
-      
-      if (node_name == "variable" || node_name == "item")
-      {
-	if (node.attributes().contains("name"))
-	  var_name = node.attributes().namedItem("name").nodeValue();
-	  
-	if (var_name.size())
-	{
-	  Variable* v = new Variable(model(), this, var_name);
-	  appendChild(v, false);      
-	  v->handleProperty(node);
-	}
-	else
-	{
-	  QString kind = node.attributes().namedItem("kind").nodeValue();
-      	  
-	  if (node_name == "variable")
-	  {
-	    handleProperty(node);
-	    setValue(node.attributes().namedItem("raw_value").nodeValue());
-	  }
-	  else
-	  {
-	    Variable* v = new Variable(model(), this, kind == "list" ? "[]" : "{}");
-	    v->setValue(node.attributes().namedItem("raw_value").nodeValue());
-	    appendChild(v, false);
-	    v->handleProperty(node);
-	  }
-	}
-      }
-      else if (node_name == "value")
-      {
-	if (variable.attributes().contains("kind"))
-	{
-	  Variable* v = new Variable(model(), this, node.firstChild().nodeValue());
-	  appendChild(v, false);
-	}
-	else if (variable.hasChildNodes())
-	{
-	  setValue(node.firstChild().nodeValue());
-	}
-      }
+        QDomNode node = lst.item ( i );
+        QString node_name = node.nodeName();
+
+        if ( node_name == "item" )
+        {            
+            QString data = node.firstChildElement ( "raw_value" ).firstChild().toCDATASection().data();
+
+            Variable* v = new Variable ( model(), this, data);	    
+            appendChild ( v, false );
+            v->handleProperty ( node );
+        }
+        else if ( node_name == "value" )
+        {
+            QString data = node.firstChild().toCDATASection().data();
+
+            if ( variable.attributes().contains ( "kind" ) )
+            {
+                Variable* v = new Variable ( model(), this, data );
+                appendChild ( v, false );
+	    }
+	    else
+	    {
+	      setValue(data);
+	    }
+        }
     }
-           
+
     return true;
 }
 

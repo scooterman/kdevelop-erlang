@@ -40,11 +40,14 @@ VariableController::VariableController(DebugSession* parent)
     : KDevelop::IVariableController(parent) , m_currentVarList(0)
 {
     Q_ASSERT(parent);    
-    connect(parent, SIGNAL(variableListUpdate(VariableListOutput*)), SLOT(handleLocals(VariableListOutput*)));
+    //connect(parent, SIGNAL(variableListUpdate(VariableListOutput*)), SLOT(handleLocals(VariableListOutput*)));
 }
 
 void VariableController::handleLocals(VariableListOutput* variableList)
 {
+  /*
+  TODO: check with someone if there's a way to make this work
+  
   m_currentVarList = new VariableListOutput(*variableList);
   
   QDomDocument& document = variableList->getDocument();
@@ -55,13 +58,15 @@ void VariableController::handleLocals(VariableListOutput* variableList)
   
   for (int i = 0; i < lst.size(); ++i)
   {
-    updatable << lst.at(i).attributes().namedItem("name").nodeValue();    
+    updatable << lst.at(i).attributes().namedItem("name").nodeValue();
+    kDebug() << "Updating: " << updatable;
+    
     QList<KDevelop::Variable*> locals = KDevelop::ICore::self()->debugController()->variableCollection()->locals()->updateLocals(updatable);  
   
     Q_ASSERT(locals.size() == 1);
-    static_cast<Variable*>(locals.at(0))->handleProperty(lst.at(i));
+    static_cast<Variable*>(locals.at(0))->handleProperty(lst.at(i));    
     updatable.clear();
-  }
+  }*/
 }
 
 DebugSession *VariableController::debugSession() const
