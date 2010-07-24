@@ -24,22 +24,30 @@
 #include <debugger/framestack/framestackmodel.h>
 
 #include "debugsession.h"
+#include "messages.h"
 
 class QDomDocument;
 namespace ErlangDebugPlugin {
 
 class FrameStackModel : public KDevelop::FrameStackModel
 {
+  Q_OBJECT
 public:
-    FrameStackModel(DebugSession* session) : KDevelop::FrameStackModel(session) {}
+    FrameStackModel(DebugSession* session) ;
 
 public:
     DebugSession* session() { return static_cast<DebugSession*>(KDevelop::FrameStackModel::session()); }
 
+
+protected slots:
+    void handleStackList(StackTraceOutput*);
+
 protected: // KDevelop::FrameStackModel overrides
     virtual void fetchThreads();
     virtual void fetchFrames(int threadNumber, int from, int to);
-
+    
+    QMap< QString, int > m_processToThreadID;
+    int m_threadID;
 private:
     //void handleStack(const QDomDocument &xml);
 };

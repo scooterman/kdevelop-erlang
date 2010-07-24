@@ -208,6 +208,10 @@ void ErlangDebugger::processLine(QByteArray data)
     {
       output = new VariableListOutput(items);
     }
+    else if (items[0] == "stack_trace")
+    {
+      output = new StackTraceOutput(items);
+    }
     
     if (output)
     {

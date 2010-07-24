@@ -7,6 +7,7 @@
 
 
 start() ->
+  application:start(sasl),
   ?DEBUG("starting debug system on: ~w",[self()]),
   ?DEBUG("erlang:register: [~w]", [erlang:register(internal_meta, spawn(fun() -> start_loop() end))]),
   ?DEBUG("erlang:register: [~w]", [erlang:register(input_reader_proc, spawn(fun() -> input_reader_sync() end))]).
@@ -26,13 +27,14 @@ input_reader() ->
     { ok, Term } ->
       ?DEBUG("Readed term ~w",[Term]),
       internal_meta ! { user_input, Term }
-  end,
+  end,  
   input_reader().
 
 start_loop() ->
   ?DEBUG("Starting debug loop", []),
   ?DEBUG("Starting int: [~w]", [int:start()]),
   ?DEBUG("Subscribe: ~w", [int:subscribe()]),
+  %?DEBUG("Stack trace: ~w", [int:stack_trace(all)]),  
   input_reader_proc ! started,
   loop(). 
 
@@ -54,12 +56,12 @@ process_user_input({ action, Action, Pid }) ->
   ?DEBUG("Sending action [~w] to pid [~w]:[~w]", [Action, PID, int:meta(PID, Action)]);
 
 process_user_input({ var_list , Meta }) ->
+  ?DEBUG("Trying to convert to meta pid: [~s]", [Meta]),
   META = list_to_pid(Meta),
-  ?DEBUG("Trying to get variable list for MetaProcess [~w]", [META]),  
-  %?DEBUG("teste: [~w]", [int:get_binding('X',int:meta(META, bindings, nostack))]),  
+  ?DEBUG("Trying to get variable list for MetaProcess [~w]", [META]),    
   VariablesList = int:meta(META, bindings, nostack),
   ?DEBUG("Variable list is : ~w",[VariablesList]),
-  ParsedData = start_parsing(VariablesList),
+  ParsedData = start_parsing_variables(VariablesList),
   ?DEBUG("Parsed data is : ~s", [ParsedData]),
   ?OUTPUT("variables_list|~s", [ParsedData]);
 
@@ -100,6 +102,9 @@ handle({ int, { new_status, Process ,break, { Module, Line } } }) ->
 %   ParsedData = start_parsing(VariablesList),
 %   ?DEBUG("Parsed data is : ~s", [ParsedData]),
 %   ?OUTPUT("variables_list|~s", [ParsedData]),
+  Backtrace = int:meta(Meta, backtrace, all),
+  ?DEBUG("backtrace message is: [~w]", [Backtrace]),
+  ?OUTPUT("stack_trace|~w|~s", [ Process, start_parsing_stack(Meta, Backtrace)]),
   ?OUTPUT("break|~s|~w|~w",[int:file(Module), Line, Process]);
 
 handle({ int, { new_status, Process , Action, Info } }) ->
@@ -110,9 +115,25 @@ handle(Unknown) ->
   ?DEBUG("received: ~w", [Unknown]).
 
 
+%%%%%%%%%%%%%%%%%%%%%%%% STACK TRACE PARSING %%%%%%%%%%%%%%%%%%%%%%
+
+start_parsing_stack(Meta, [ { SP , { Module, Function, _ } } | T ]) ->
+  Item = int:meta(Meta, stack_frame, { up , SP + 1 }),
+  ?DEBUG("Item is: [~w]", [Item]),
+  { _ , { _ , Line } , _ } = Item,
+  Name = case int:file(Module) of
+    { error, _ } -> "";
+    Ok -> Ok    
+  end,
+  io_lib:format("~p,~s:~s,~s,~p ", [ SP, Module, Function, Name, Line ]) ++ start_parsing_stack(Meta, T);
+
+start_parsing_stack( _ , [ ]) -> "".
+
+%%%%%%%%%%%%%%%%%%%%%%%% STACK TRACE PARSING END %%%%%%%%%%%%%%%%%%%%%%
+
 %%%%%%%%%%% VARIABLE LIST TO XML CONVERSION %%%%%%%%%%%%%%%%%%
 
-start_parsing(Data) ->
+start_parsing_variables(Data) ->
   io_lib:format("<variables>~s</variables>" , [ parse(Data) ]).
 
 parse([]) -> "";
@@ -139,12 +160,11 @@ parse_list_items([ H | T ]) ->
 
 %%%%%%%%%%% END VARIABLE LIST TO XML CONVERSION %%%%%%%%%%%%%%%%%%
 
-
 %%% End message handling
 
 loop() ->
   receive
-    Data ->
+    Data ->      
       handle(Data),
       loop()    
   end.

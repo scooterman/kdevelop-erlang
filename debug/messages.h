@@ -51,7 +51,8 @@ enum OutputCommandType
   VariableListOutputType,
   BreakpointOutputType,
   MetaOutputType,
-  ProcessStatusUpdateType
+  ProcessStatusUpdateType,
+  StackTraceOutputType
 };
 
 namespace ErlangProcessStatus
@@ -92,6 +93,30 @@ class VariableListOutput : public ErlangOutput
   
   protected:
     QDomDocument m_document;
+};
+
+struct StackInfo
+{
+  QString function_name;
+  QString filename;
+  int line;
+  int stack_pos;
+};
+
+class StackTraceOutput : public ErlangOutput
+{      
+  public:
+    StackTraceOutput(const QStringList& rawData) 
+    : ErlangOutput(rawData, StackTraceOutputType)
+    { 
+    } 
+    void parse();
+    
+    QList<StackInfo>& getStackTrace();    
+    QString& getProcess();
+  protected:
+    QString m_process;
+    QList<StackInfo> m_stackTrace;
 };
 
 class MetaProcessOutput : public ErlangOutput

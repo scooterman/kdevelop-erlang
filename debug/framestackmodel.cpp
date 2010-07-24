@@ -23,24 +23,12 @@
 #include <KDebug>
 
 #include "framestackmodel.h"
+#include "messages.h"
 
 namespace ErlangDebugPlugin {
 
 void FrameStackModel::fetchThreads()
 {
-    //no multithreading in php, create just one
-    QList<KDevelop::FrameStackModel::ThreadItem> threadsList;
-    KDevelop::FrameStackModel::ThreadItem i;
-    i.nr = 0;
-    i.name = "main thread";
-    threadsList << i;
-    
-    i.nr = 1;
-    i.name = "test";
-    threadsList << i;
-    
-    setThreads(threadsList);
-    setCurrentThread(0);
 }
 
 /*
@@ -67,11 +55,55 @@ void FrameStackModel::fetchFrames(int threadNumber, int from, int to)
 {
     Q_UNUSED(from); //we fetch always everything
     Q_UNUSED(to);
+}
 
-    /*if (threadNumber == 0) { //we support only one thread
-        Callback<FrameStackModel>* cb = new Callback<FrameStackModel>(this, &FrameStackModel::handleStack);
-        session()->connection()->sendCommand("stack_get", QStringList(), QByteArray(), cb);
-    }*/
+void FrameStackModel::handleStackList(StackTraceOutput* output)
+{
+  QList<KDevelop::FrameStackModel::FrameItem> frames;
+  
+  foreach(StackInfo item, output->getStackTrace())
+  {
+    KDevelop::FrameStackModel::FrameItem f;
+    f.name = item.function_name;
+    f.line = item.line;
+    f.nr = item.stack_pos;
+    f.file = item.filename;
+    
+    frames << f;
+  }
+  
+  int threadID;
+  if (m_processToThreadID.contains(output->getProcess()))
+  {
+    threadID = m_processToThreadID[output->getProcess()]; 
+  }
+  else
+  {
+    threadID = m_processToThreadID[output->getProcess()] = m_threadID++;    
+  }
+  
+  QList<KDevelop::FrameStackModel::ThreadItem> threads;
+  QMap<QString, int>::iterator it = m_processToThreadID.begin();
+  
+  for (; it != m_processToThreadID.end(); ++it)
+  {
+    KDevelop::FrameStackModel::ThreadItem item;
+    item.name = it.key();
+    item.nr = it.value();
+    threads << item;
+  }
+  
+  setThreads(threads);
+  
+  setFrames(threadID, frames); 
+  setHasMoreFrames(threadID, false);
+  setCurrentThread(threadID);
+}
+
+FrameStackModel::FrameStackModel(DebugSession* session) : 
+  KDevelop::FrameStackModel(session) , m_threadID(0)
+{
+  connect(session, SIGNAL(stackTraceUpdate(StackTraceOutput*)), this, SLOT(handleStackList(StackTraceOutput*)));
 }
 
 }

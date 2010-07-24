@@ -21,6 +21,7 @@
 #include "messages.h"
 #include "kdebug.h"
 #include <QXmlReader>
+#include <QString>
 
 namespace ErlangDebugPlugin
 {
@@ -124,6 +125,36 @@ ErlangProcessStatus::status ProcessStatusUpdateOutput::getProcessStatus()
 
 void ProcessStatusUpdateOutput::parse()
 {
+}
+
+QList< StackInfo >& StackTraceOutput::getStackTrace()
+{
+  return m_stackTrace;
+}
+
+void StackTraceOutput::parse()
+{
+  m_process = m_rawData[1];
+
+  QStringList frames = m_rawData[2].trimmed().split(" ");
+  
+  foreach(QString frame, frames)
+  {
+    QStringList frame_itens = frame.split(",");
+    StackInfo info;
+    
+    info.stack_pos = frame_itens[0].toInt();
+    info.function_name = frame_itens[1];
+    info.filename = frame_itens[2];
+    info.line = frame_itens[3].toInt() - 1;
+    
+    m_stackTrace.append(info);
+  }  
+}
+
+QString& StackTraceOutput::getProcess()
+{
+  return m_process;
 }
 
 BreakCommand::BreakCommand(QString module, unsigned int line): 

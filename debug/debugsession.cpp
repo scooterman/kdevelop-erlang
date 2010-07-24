@@ -262,9 +262,14 @@ void DebugSession::handleDebuggerCommand(ErlangOutput* command)
 	
 	m_callbacks.clear();
 	
-	emit variableListUpdate(i_cmd);	
+	emit variableListUpdate(i_cmd);
       }
       break;
+    case StackTraceOutputType:
+      {
+	StackTraceOutput* i_cmd = static_cast<StackTraceOutput*>(command);
+	emit stackTraceUpdate(i_cmd);      
+      }
   }
 }
 

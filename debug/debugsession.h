@@ -39,6 +39,7 @@ class ErlangDebugger;
 class ErlangOutput;
 class BreakpointOutput;
 class VariableListOutput;
+class StackTraceOutput;
 
 static QString erlangShellExecPath = "Erlang ERTS Path";
 static QString rebuildDebuggerInterface = "Rebuild erlang debugger interface prior staring";
@@ -72,6 +73,7 @@ public:
 Q_SIGNALS:
     void breakpointUpdate(BreakpointOutput*);
     void variableListUpdate(VariableListOutput*);
+    void stackTraceUpdate(StackTraceOutput*);
     void stdoutReceived(QString data);
     
 public Q_SLOTS:    
