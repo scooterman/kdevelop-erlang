@@ -105,6 +105,8 @@ KDevelop::DUContext* ContextBuilder::contextFromNode(erlang::AstNode* node)
   {
     return node->ducontext;
   }
+  
+  return NULL;
 }
 
 EditorIntegrator* ContextBuilder::editor() const
@@ -131,12 +133,9 @@ void ContextBuilder::visitFunctionOrRuleClause(FunctionOrRuleClauseAst* node)
 {
   if (node->function_name)
   {
-    openContext(node->clause_args, KDevelop::DUContext::Function, node->function_name);
-    visitNode(node->clause_args);
-    closeContext();
-    visitNode(node->clause_guard);
-    visitNode(node->rule_body);
-    visitNode(node->body);    
+    openContext(node, editorFindRange(node, node), KDevelop::DUContext::Function, node->function_name);
+    DefaultVisitor::visitFunctionOrRuleClause(node);
+    closeContext(); 
   }
   else
   {

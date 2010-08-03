@@ -25,6 +25,7 @@
 #include <language/duchain/builders/abstractdeclarationbuilder.h>
 #include <erlangast.h>
 #include <language/duchain/builders/abstractdeclarationbuilder.h>
+#include "typebuilder.h"
 
 namespace KDvelop
 {
@@ -37,7 +38,7 @@ class EditorIntegrator;
 class ClassDeclaration;
 class FunctionDeclaration;
 
-typedef KDevelop::AbstractDeclarationBuilder<AstNode, AstNode, ContextBuilder> DeclarationBuilderBase;
+typedef KDevelop::AbstractDeclarationBuilder<AstNode, AstNode, TypeBuilder > DeclarationBuilderBase;
 
 class DeclarationBuilder : public DeclarationBuilderBase
 {
@@ -47,8 +48,9 @@ public:
     
 protected:
     virtual void visitExprMax(ExprMaxAst* node);
-    virtual void visitFunctionOrRuleClause(erlang::FunctionOrRuleClauseAst* node);
-    virtual void startVisiting(AstNode* formAst);
+    virtual void visitFunctionOrRuleClause(erlang::FunctionOrRuleClauseAst* node);    
+    
+    virtual void updateCurrentType();
 };
 
 }

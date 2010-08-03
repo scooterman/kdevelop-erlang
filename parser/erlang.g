@@ -316,8 +316,14 @@ namespace KDevelop
    function_name=atom1 clause_args=clauseArgs clause_guard=clauseGuard (body=clauseBody | rule_body=ruleBody)
 ->functionOrRuleClause;;
 
-    argument_list=argumentList
+    clause_list=clauseList
 -> clauseArgs;;
+    
+    LPAREN (arg_exprs=argExprs | 0) RPAREN
+-> clauseList;;
+
+    #arg=expr @ COMMA
+-> argExprs;;
 
     WHEN (#guards=guard @ SEMICOLON) | 0
 -> clauseGuard;;
@@ -490,7 +496,7 @@ namespace KDevelop
     expr clause_guard=clauseGuard clause_body=clauseBody
 -> crClause;;
 
-      RECEIVE (cr_clauses=crClauses | 0) (AFTER clause_body=clauseBody | 0) END
+      RECEIVE (cr_clauses=crClauses | 0) (AFTER expr=expr clause_body=clauseBody | 0) END
 -> receiveExpr;;
 
       FUN (atom1 (FORWARD_SLASH INTEGER_LITERAL | COLON atom1 FORWARD_SLASH INTEGER_LITERAL)

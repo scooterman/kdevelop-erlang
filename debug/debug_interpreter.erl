@@ -102,18 +102,18 @@ handle({ int, { new_status, Process ,break, { Module, Line } } }) ->
 %   ParsedData = start_parsing(VariablesList),
 %   ?DEBUG("Parsed data is : ~s", [ParsedData]),
 %   ?OUTPUT("variables_list|~s", [ParsedData]),
-  Backtrace = int:meta(Meta, backtrace, all),
+  Backtrace = int:meta(Meta, backtrace, 40),
   ?DEBUG("backtrace message is: [~w]", [Backtrace]),
   ?OUTPUT("stack_trace|~w|~s", [ Process, start_parsing_stack(Meta, Backtrace)]),
   ?OUTPUT("break|~s|~w|~w",[int:file(Module), Line, Process]);
 
-handle({ int, { new_status, Process , Action, Info } }) ->
-  ?DEBUG("Trapped a status update [~w] on process [~w] and info [~w]", [Action, Process, Info]),
-  ?OUTPUT("process_status_update|~w|~w|~w",[Process, Action, Info]);
+handle({ int, { new_status, Process , exit, Info } }) ->
+  ?DEBUG("Trapped a process exit for process [~w] and info [~w]", [ Process, Info]),
+  ?OUTPUT("process_status_update|~w|~w|~w",[Process, exit, Info]);
 
-handle(Unknown) ->
-  ?DEBUG("received: ~w", [Unknown]).
+handle({ int, { new_status, _ , _ , _ } }) -> ok;
 
+handle(Unknown) -> ok.
 
 %%%%%%%%%%%%%%%%%%%%%%%% STACK TRACE PARSING %%%%%%%%%%%%%%%%%%%%%%
 

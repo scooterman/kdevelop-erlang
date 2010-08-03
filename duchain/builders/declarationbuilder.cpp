@@ -46,13 +46,16 @@ void DeclarationBuilder::visitFunctionOrRuleClause(erlang::FunctionOrRuleClauseA
 {
   if (node->function_name)
   {
-    FunctionDeclaration* func = openDeclaration<FunctionDeclaration>(node->function_name, node->body);
+    FunctionDeclaration* func = openDeclaration<FunctionDeclaration>(node->function_name, node->body);    
+    func->setDeclarationIsDefinition(true);
+    func->setKind(KDevelop::Declaration::Type);
+    
     DeclarationBuilderBase::visitFunctionOrRuleClause(node);    
     closeDeclaration();
   }
   else
   {
-    DefaultVisitor::visitFunctionOrRuleClause(node);
+    DeclarationBuilderBase::visitFunctionOrRuleClause(node);
   }
 }
 
@@ -68,12 +71,15 @@ void DeclarationBuilder::visitExprMax(ExprMaxAst* node)
   }
   else
   {
-    erlang::DefaultVisitor::visitExprMax(node);
+    DeclarationBuilderBase::visitExprMax(node);
   }
 }
 
-void DeclarationBuilder::startVisiting(AstNode* formAst)
+void DeclarationBuilder::updateCurrentType()
 {
-  visitNode(formAst);
+  KDevelop::DUChainWriteLocker lock(KDevelop::DUChain::lock());
+  currentDeclaration()->setAbstractType(currentAbstractType());
 }
+
+
 }

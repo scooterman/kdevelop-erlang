@@ -33,8 +33,10 @@ set(kdeverlanglanguagesupport_PART_SRCS
     parsejob.cpp
     duchain/builders/contextbuilder.cpp
     duchain/builders/declarationbuilder.cpp
+    duchain/builders/typebuilder.cpp
     duchain/declarations/functiondeclaration.cpp
-    duchain/declarations/variabledeclaration.cpp
+    duchain/declarations/variabledeclaration.cpp    
+    duchain/types/objecttype.cpp
     #navigation/fieldnavigationcontext.cpp
     #navigation/navigationwidget.cpp
     #navigation/valuenavigationcontext.cpp
@@ -101,3 +103,4 @@ target_link_libraries(duchaintest
 # )
 
 add_subdirectory(debug)
+# add_subdirectory(completion)

@@ -415,8 +415,8 @@ int Lexer::nextTokenKind()
         } else if (name == "of") {
             token = Parser::Token_OF;
         } else if (name == "catch") {
-            token = Parser::Token_QUERY;
-        } else if (name == "class") {
+            token = Parser::Token_CATCH;
+        } else if (name == "receive") {
             token = Parser::Token_RECEIVE;
         } else if (name == "when") {
             token = Parser::Token_WHEN;
@@ -432,6 +432,8 @@ int Lexer::nextTokenKind()
             token = Parser::Token_BIT_OR;
         } else if (name == "bxor") {
             token = Parser::Token_BIT_XOR;
+        } else if (name == "query") {
+            token = Parser::Token_QUERY;
         } else if (name == "bsl") {
             token = Parser::Token_SL;
         } else if (name == "bsr") {
