@@ -13,6 +13,7 @@ Comment[sv]=Insticksprogrammet tillhandahåller ett gränssnitt för Erlang avlu
 Comment[uk]=Цей додаток є оболонкою до зневадника Erlang
 Comment[x-test]=xxThis plugin provides a frontend for Erlang debuggerxx
 Name=Erlang Debugger Support
+Name[es]=Implementación del depurador Erlang
 Name[pt]=Suporte para o Depurador de Erlang
 Name[pt_BR]=Suporte para a depurador Erlang
 Name[sv]=Stöd för Erlang avlusare
