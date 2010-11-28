@@ -14,6 +14,7 @@ Comment[uk]=Цей додаток є оболонкою до зневадник�
 Comment[x-test]=xxThis plugin provides a frontend for Erlang debuggerxx
 Name=Erlang Debugger Support
 Name[es]=Implementación del depurador Erlang
+Name[fr]=Prise en charge du débogueur Erlang
 Name[pt]=Suporte para o Depurador de Erlang
 Name[pt_BR]=Suporte para a depurador Erlang
 Name[sv]=Stöd för Erlang avlusare
