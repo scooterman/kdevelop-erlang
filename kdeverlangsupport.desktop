@@ -14,6 +14,7 @@ Comment[sv]=Stöd för språket Erlang
 Comment[uk]=Підтримка мови Erlang
 Comment[x-test]=xxErlang Language Supportxx
 Name=Erlang Support
+Name[en_GB]=Erlang Support
 Name[es]=Implementación de Erlang
 Name[et]=Erlangi toetus
 Name[fr]=Prise en charge de Erlang
